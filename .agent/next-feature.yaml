@@ -4,3 +4,8 @@ next_feature:
   autonomy: implement_now
   scope: 在既有設定對話框加入可驗證的裝置資料清除流程
   status: accepted
+next_recommendation:
+  selected: 以 D1 持久化免費翻譯額度
+  evidence: 目前記憶體 quotaStore 在 Worker 重啟或多執行個體間不保證一致
+  autonomy: recommend_only
+  reason: 需要新增持久化資源與正式資料邊界 不在本輪自動延伸範圍

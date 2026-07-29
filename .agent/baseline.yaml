@@ -34,6 +34,7 @@ baseline:
   known_limitations:
     - OpenCC 大型詞庫仍為按需下載資源 首屏不再載入
     - 免費翻譯依外部服務可用性
+    - Sites 維持擁有者限定存取 未登入只能驗證登入閘道
   evidence:
     - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
     - npm run lint PASS
@@ -41,4 +42,6 @@ baseline:
     - npm test 12 of 12 PASS
     - agent-browser desktop and 390px mobile acceptance PASS
     - local Web Vitals CLS 0 FCP 100ms TTFB 56ms
+    - GitHub public main push PASS
+    - Sites version 4 deployment succeeded
   status: passed

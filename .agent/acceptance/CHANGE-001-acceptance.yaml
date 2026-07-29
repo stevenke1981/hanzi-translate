@@ -24,4 +24,10 @@ acceptance:
     - local CLS 0
     - local FCP 100ms
     - local TTFB 56ms
+  publication_evidence:
+    - GitHub repository PUBLIC and main synchronized
+    - Sites source and GitHub histories linked without replacing prior Sites history
+    - Sites version 4 deployment succeeded
+    - unauthenticated production request reached the expected Sign in required gate
+  production_content_after_owner_login: MANUAL_REQUIRED
   status: passed

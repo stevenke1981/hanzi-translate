@@ -18,4 +18,4 @@ change:
       - 開發與部署品質命令
     public_contract: 不改變既有 URL 與輸入輸出格式
   rollback: 回復 CHANGE-001 commit 並重新部署上一個 Sites 版本
-  status: accepted_pending_publication
+  status: published

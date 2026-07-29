@@ -20,4 +20,4 @@ plan:
       task: 建立公開倉庫並發布 Sites
       output: GitHub URL 與正式部署 URL
       verify: 遠端 commit 與公開 HTTP
-      status: in_progress
+      status: completed
