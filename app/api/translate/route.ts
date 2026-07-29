@@ -1,5 +1,3 @@
-import { env } from "cloudflare:workers";
-
 const DAILY_LIMIT = 20;
 const MINUTE_LIMIT = 5;
 const MAX_LENGTH = 10_000;
@@ -16,12 +14,14 @@ type TranslationRequest = {
   model?: string;
 };
 
-type RuntimeEnv = typeof env & {
-  TRANSLATION_API_KEY?: string;
-  TRANSLATION_API_BASE?: string;
-  TRANSLATION_MODEL?: string;
-  QUOTA_HASH_SALT?: string;
+type QuotaRecord = {
+  date: string;
+  count: number;
+  minuteBucket: number;
+  minuteCount: number;
 };
+
+const quotaStore = new Map<string, QuotaRecord>();
 
 const providerConfig: Record<
   Exclude<Provider, "builtin">,
@@ -54,8 +54,7 @@ function getClientAddress(request: Request) {
 }
 
 async function visitorKey(request: Request) {
-  const runtime = env as RuntimeEnv;
-  const value = `${getClientAddress(request)}:${runtime.QUOTA_HASH_SALT || "yijiang-quota-v1"}`;
+  const value = `${getClientAddress(request)}:${process.env.QUOTA_HASH_SALT || "yijiang-quota-v1"}`;
   const digest = await crypto.subtle.digest(
     "SHA-256",
     new TextEncoder().encode(value),
@@ -73,84 +72,64 @@ async function readRemaining(request: Request) {
   if (new URL(request.url).hostname === "terminal.local") {
     return DAILY_LIMIT;
   }
-  const runtime = env as RuntimeEnv;
-  if (!runtime.DB) return DAILY_LIMIT;
   const key = await visitorKey(request);
-  const row = await runtime.DB.prepare(
-    "SELECT request_count AS requestCount FROM translation_usage WHERE visitor_key = ? AND usage_date = ?",
-  )
-    .bind(key, today())
-    .first<{ requestCount: number }>();
-  return Math.max(0, DAILY_LIMIT - (row?.requestCount ?? 0));
+  const record = quotaStore.get(key);
+  if (!record || record.date !== today()) return DAILY_LIMIT;
+  return Math.max(0, DAILY_LIMIT - record.count);
 }
 
 async function reserveQuota(request: Request) {
   if (new URL(request.url).hostname === "terminal.local") {
     return { allowed: true, remaining: DAILY_LIMIT - 1 };
   }
-  const runtime = env as RuntimeEnv;
-  if (!runtime.DB) {
-    return { allowed: true, remaining: DAILY_LIMIT - 1 };
-  }
-
   const key = await visitorKey(request);
   const date = today();
   const bucket = Math.floor(Date.now() / 60_000);
-  const updatedAt = new Date().toISOString();
-  const result = await runtime.DB.prepare(
-    `INSERT INTO translation_usage
-      (visitor_key, usage_date, request_count, minute_bucket, minute_count, updated_at)
-     VALUES (?, ?, 1, ?, 1, ?)
-     ON CONFLICT(visitor_key, usage_date) DO UPDATE SET
-       request_count = request_count + 1,
-       minute_count = CASE
-         WHEN minute_bucket = ? THEN minute_count + 1
-         ELSE 1
-       END,
-       minute_bucket = ?,
-       updated_at = ?
-     WHERE request_count < ?
-       AND (minute_bucket <> ? OR minute_count < ?)
-     RETURNING request_count AS requestCount, minute_count AS minuteCount`,
-  )
-    .bind(
-      key,
-      date,
-      bucket,
-      updatedAt,
-      bucket,
-      bucket,
-      updatedAt,
-      DAILY_LIMIT,
-      bucket,
-      MINUTE_LIMIT,
-    )
-    .first<{ requestCount: number; minuteCount: number }>();
+  const existing = quotaStore.get(key);
+  const record: QuotaRecord =
+    !existing || existing.date !== date
+      ? { date, count: 0, minuteBucket: bucket, minuteCount: 0 }
+      : existing;
 
-  if (!result) {
-    const remaining = await readRemaining(request);
-    return { allowed: false, remaining };
+  if (
+    record.count >= DAILY_LIMIT ||
+    (record.minuteBucket === bucket && record.minuteCount >= MINUTE_LIMIT)
+  ) {
+    return {
+      allowed: false,
+      remaining: Math.max(0, DAILY_LIMIT - record.count),
+    };
+  }
+
+  record.count += 1;
+  if (record.minuteBucket === bucket) {
+    record.minuteCount += 1;
+  } else {
+    record.minuteBucket = bucket;
+    record.minuteCount = 1;
+  }
+  quotaStore.set(key, record);
+
+  if (quotaStore.size > 10_000) {
+    for (const [storedKey, storedRecord] of quotaStore) {
+      if (storedRecord.date !== date) quotaStore.delete(storedKey);
+    }
   }
 
   return {
     allowed: true,
-    remaining: Math.max(0, DAILY_LIMIT - result.requestCount),
+    remaining: Math.max(0, DAILY_LIMIT - record.count),
   };
 }
 
 async function releaseQuota(request: Request) {
   if (new URL(request.url).hostname === "terminal.local") return;
-  const runtime = env as RuntimeEnv;
-  if (!runtime.DB) return;
   const key = await visitorKey(request);
-  await runtime.DB.prepare(
-    `UPDATE translation_usage
-     SET request_count = MAX(0, request_count - 1),
-         minute_count = MAX(0, minute_count - 1)
-     WHERE visitor_key = ? AND usage_date = ?`,
-  )
-    .bind(key, today())
-    .run();
+  const record = quotaStore.get(key);
+  if (!record || record.date !== today()) return;
+  record.count = Math.max(0, record.count - 1);
+  record.minuteCount = Math.max(0, record.minuteCount - 1);
+  quotaStore.set(key, record);
 }
 
 function isLanguage(value: unknown): value is Language {
@@ -315,7 +294,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    const runtime = env as RuntimeEnv;
     const isPreview = new URL(request.url).hostname === "terminal.local";
     let translation: string;
 
@@ -332,11 +310,11 @@ export async function POST(request: Request) {
               ? "让文字跨越语言的距离。"
               : "讓文字跨越語言的距離。"
             : `[本機預覽] ${text}`;
-      } else if (!isPreview && runtime.TRANSLATION_API_KEY) {
+      } else if (!isPreview && process.env.TRANSLATION_API_KEY) {
         translation = await translateWithOpenAICompatible(
-          runtime.TRANSLATION_API_BASE || "https://api.openai.com/v1",
-          runtime.TRANSLATION_API_KEY,
-          runtime.TRANSLATION_MODEL || "gpt-4.1-mini",
+          process.env.TRANSLATION_API_BASE || "https://api.openai.com/v1",
+          process.env.TRANSLATION_API_KEY,
+          process.env.TRANSLATION_MODEL || "gpt-4.1-mini",
           text,
           source,
           target,
