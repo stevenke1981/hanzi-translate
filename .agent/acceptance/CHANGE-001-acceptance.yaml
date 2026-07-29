@@ -1,0 +1,27 @@
+acceptance:
+  change_id: CHANGE-001
+  build_or_launch: PASS
+  requested_user_scenario: PASS
+  affected_regression: PASS
+  critical_flows: PASS
+  visible_result: PASS
+  critical_errors: NONE
+  automated_evidence:
+    - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
+    - npm run lint PASS
+    - npm run build PASS
+    - npm test 12 of 12 PASS
+  browser_evidence:
+    - 台灣詞彙 滑鼠 硬碟 軟體 轉為 鼠标 硬盘 软件
+    - Base64 6K2v5Yyg77yaQeKGkkI= 還原 譯匠 A to B
+    - 跨模式保留使用者輸入
+    - API 設定儲存後可從介面完全清除
+    - 隱私拒絕值寫入裝置且提示消失
+    - 鍵盤 ArrowRight 分頁與 Escape 關閉對話框
+    - 1440px 桌面與 390px 手機無水平溢位
+  performance_evidence:
+    - 首屏 page chunk 1201593 bytes 降至 21441 bytes
+    - local CLS 0
+    - local FCP 100ms
+    - local TTFB 56ms
+  status: passed

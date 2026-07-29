@@ -1,0 +1,27 @@
+intent:
+  goal: 將譯匠整理成可公開維護、可在 Windows 驗證並可部署的正式版本
+  user_outcome: 使用者可正確完成簡繁詞彙、編碼與翻譯工作，維護者可直接執行品質檢查
+  primary_user_scenario: 輸入文字、選擇模式、取得正確結果並管理裝置上的 API 設定
+  in_scope:
+    - 修正實際文字轉換缺陷
+    - 改善首屏效能與可及性
+    - 建立跨平台品質流程與實際回歸
+    - 建立公開 GitHub 倉庫並部署既有 Sites 專案
+  out_of_scope:
+    - 新增伺服器端金鑰保存
+    - 變更免費額度或商業方案
+    - 建立第二個 Sites 專案
+  constraints:
+    - 保留 Vinext Vite Sites 架構與既有 project_id
+    - 簡繁與編碼維持本機不限次數
+    - API Key 僅保留在使用者裝置
+  protected_behavior:
+    - 簡繁轉換
+    - 五種編碼雙向轉換
+    - 中英翻譯設定與免費額度
+    - 同意流程 SEO 法律頁與 AdSense 版位
+  acceptance:
+    - npm run lint npm run build npm test 全數通過
+    - 瀏覽器完成桌面與行動版核心操作
+    - 正式路由與文字工具回歸通過
+    - 公開 GitHub 倉庫與 Sites 正式 URL 可存取

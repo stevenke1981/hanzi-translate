@@ -1,0 +1,23 @@
+plan:
+  objective: 交付已驗收並公開發布的譯匠正式版本
+  tasks:
+    - id: T1
+      task: 建立原始基準並定位可重現缺陷
+      output: Windows 腳本失敗 台灣詞彙來源錯誤 首屏詞庫過大
+      verify: 原始命令與轉換範例重現
+      status: completed
+    - id: T2
+      task: 完成跨平台流程與文字工具修正
+      output: Node 建置驗證 按需詞庫 嚴格 Hex 解碼
+      verify: lint build test
+      status: completed
+    - id: T3
+      task: 完成真實瀏覽器驗收與 Baseline
+      output: 桌面 行動 隱私 設定 路由驗收證據
+      verify: agent-browser 操作
+      status: completed
+    - id: T4
+      task: 建立公開倉庫並發布 Sites
+      output: GitHub URL 與正式部署 URL
+      verify: 遠端 commit 與公開 HTTP
+      status: in_progress

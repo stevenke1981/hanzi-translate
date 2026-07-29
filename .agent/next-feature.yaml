@@ -1,0 +1,6 @@
+next_feature:
+  selected: 清除裝置上的 API 設定
+  evidence: FAQ 要求共用裝置使用後清除 但原介面沒有清除入口
+  autonomy: implement_now
+  scope: 在既有設定對話框加入可驗證的裝置資料清除流程
+  status: accepted

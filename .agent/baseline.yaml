@@ -1,0 +1,44 @@
+baseline:
+  id: BASELINE-20260730-001
+  accepted_features:
+    - 簡體 台灣繁體 台灣詞彙 香港繁體互換
+    - Base64 URL HTML Unicode UTF-8 Hex 雙向轉換
+    - 免費與自備金鑰中英翻譯設定
+    - 裝置 API 設定清除
+    - 隱私同意 法律 SEO 與廣告路由
+  critical_user_flows:
+    - 台灣詞彙輸入轉為正確簡體地區詞彙
+    - 編碼後切換解碼並還原原文
+    - 儲存後清除裝置 API 設定
+    - 桌面與 390px 行動版操作
+  protected_behavior:
+    - 簡繁與編碼維持本機不限次數
+    - API Key 不寫入伺服器資料庫
+    - 切換工具時保留使用者輸入
+    - 既有 Sites project_id 不變
+  public_interfaces:
+    - /
+    - /api/translate
+    - /privacy
+    - /terms
+    - /robots.txt
+    - /sitemap.xml
+    - /ads.txt
+  data_compatibility:
+    - yijiang-ad-consent localStorage key
+    - yijiang-api-settings localStorage key
+  environment:
+    - Windows PowerShell
+    - Node.js 22.13+
+    - Vinext Vite Sites
+  known_limitations:
+    - OpenCC 大型詞庫仍為按需下載資源 首屏不再載入
+    - 免費翻譯依外部服務可用性
+  evidence:
+    - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
+    - npm run lint PASS
+    - npm run build PASS
+    - npm test 12 of 12 PASS
+    - agent-browser desktop and 390px mobile acceptance PASS
+    - local Web Vitals CLS 0 FCP 100ms TTFB 56ms
+  status: passed
