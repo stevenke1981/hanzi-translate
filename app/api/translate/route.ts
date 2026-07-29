@@ -169,7 +169,9 @@ async function translateWithOpenAICompatible(
       "content-type": "application/json",
       ...(base.includes("openrouter.ai")
         ? {
-            "HTTP-Referer": "https://hanzi-translate.chatgpt.site",
+            "HTTP-Referer":
+              process.env.NEXT_PUBLIC_SITE_URL ||
+              "https://hanzi-translate.mulinbro35964.chatgpt.site",
             "X-Title": "譯匠",
           }
         : {}),
