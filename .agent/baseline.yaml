@@ -40,7 +40,7 @@ baseline:
     - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
     - npm run lint PASS
     - npm run build PASS
-    - npm test 13 of 13 PASS
+    - npm test 14 of 14 PASS
     - agent-browser desktop and 390px mobile acceptance PASS
     - local Web Vitals CLS 0 FCP 100ms TTFB 56ms
     - GitHub public main push PASS
@@ -48,6 +48,8 @@ baseline:
     - Cloudflare Worker deployment succeeded version 2c36da52-4538-4fc2-81cc-02c0b34c4c35
     - Cloudflare SEO verification passed: canonical, page-specific OpenGraph URL, WebSite JSON-LD, robots sitemap, stable sitemap lastmod, and no legacy Sites domain
     - Cloudflare Worker deployment succeeded version dc667210-d983-49df-915f-060a49cf5795
+    - English interface browser acceptance passed: language toggle, persisted local preference, 390px no overflow, script conversion, English privacy page and lang=en
+    - Cloudflare Worker deployment succeeded version a2cedccf-6d21-4535-9843-b8d2e89d7b05
     - Cloudflare public routes / /privacy /terms /robots.txt /sitemap.xml /ads.txt /api/translate returned 200
     - Cloudflare builtin translation POST returned 502 because both free upstreams rejected Worker egress
   status: passed

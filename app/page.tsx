@@ -7,9 +7,15 @@ import {
   type Encoding,
   type ScriptLocale,
 } from "../lib/text-tools";
+import {
+  APP_COPY,
+  isUiLocale,
+  type AppCopy,
+  type TranslationLanguage,
+  type UiLocale,
+} from "../lib/i18n";
 
 type Mode = "script" | "encoding" | "translate";
-type Language = "zh-TW" | "zh-CN" | "en";
 type Provider = "builtin" | "openai" | "openrouter" | "gemini" | "xai";
 type Consent = "accepted" | "rejected" | null;
 
@@ -17,27 +23,6 @@ type ApiSettings = {
   provider: Provider;
   apiKey: string;
   model: string;
-};
-
-const SCRIPT_LABELS: Record<ScriptLocale, string> = {
-  tw: "繁體中文（台灣）",
-  twp: "繁體中文（台灣詞彙）",
-  cn: "簡體中文",
-  hk: "繁體中文（香港）",
-};
-
-const LANGUAGE_LABELS: Record<Language, string> = {
-  "zh-TW": "繁體中文",
-  "zh-CN": "簡體中文",
-  en: "English",
-};
-
-const ENCODING_LABELS: Record<Encoding, string> = {
-  base64: "Base64",
-  url: "URL Encode",
-  html: "HTML Entities",
-  unicode: "Unicode Escape",
-  hex: "UTF-8 Hex",
 };
 
 const MODEL_DEFAULTS: Record<Exclude<Provider, "builtin">, string> = {
@@ -87,7 +72,15 @@ function BrandMark() {
   );
 }
 
-function AdSlot({ slot, label }: { slot?: string; label: string }) {
+function AdSlot({
+  slot,
+  label,
+  copy,
+}: {
+  slot?: string;
+  label: string;
+  copy: AppCopy;
+}) {
   const initialized = useRef(false);
   const client = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
   const [consent, setConsent] = useState<Consent>(null);
@@ -137,15 +130,18 @@ function AdSlot({ slot, label }: { slot?: string; label: string }) {
 
   if (!client || !slot || consent !== "accepted") {
     return (
-      <aside className="ad-placeholder" aria-label={`${label}廣告位置`}>
+      <aside
+        className="ad-placeholder"
+        aria-label={copy.ad.placeholderAria(label)}
+      >
         <span>AD</span>
-        <p>{label}廣告版位</p>
+        <p>{copy.ad.placeholderText(label)}</p>
       </aside>
     );
   }
 
   return (
-    <aside className="ad-live" aria-label={`${label}廣告`}>
+    <aside className="ad-live" aria-label={copy.ad.liveAria(label)}>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}
@@ -159,6 +155,8 @@ function AdSlot({ slot, label }: { slot?: string; label: string }) {
 }
 
 export default function Home() {
+  const [uiLanguage, setUiLanguage] = useState<UiLocale>("zh-Hant");
+  const [languageReady, setLanguageReady] = useState(false);
   const [mode, setMode] = useState<Mode>("script");
   const [input, setInput] = useState(INITIAL_SAMPLE);
   const [output, setOutput] = useState("");
@@ -166,10 +164,11 @@ export default function Home() {
   const [scriptTo, setScriptTo] = useState<ScriptLocale>("cn");
   const [encoding, setEncoding] = useState<Encoding>("base64");
   const [decode, setDecode] = useState(false);
-  const [languageFrom, setLanguageFrom] = useState<Language>("zh-TW");
-  const [languageTo, setLanguageTo] = useState<Language>("en");
+  const [languageFrom, setLanguageFrom] =
+    useState<TranslationLanguage>("zh-TW");
+  const [languageTo, setLanguageTo] = useState<TranslationLanguage>("en");
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("準備就緒");
+  const [notice, setNotice] = useState(APP_COPY["zh-Hant"].notices.ready);
   const [copied, setCopied] = useState(false);
   const [remaining, setRemaining] = useState(20);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -177,21 +176,43 @@ export default function Home() {
   const [apiSettings, setApiSettings] =
     useState<ApiSettings>(DEFAULT_API_SETTINGS);
   const settingsProviderRef = useRef<HTMLSelectElement>(null);
+  const copy = APP_COPY[uiLanguage];
 
   const sourceLabel = useMemo(() => {
-    if (mode === "script") return SCRIPT_LABELS[scriptFrom];
-    if (mode === "encoding") return decode ? ENCODING_LABELS[encoding] : "純文字";
-    return LANGUAGE_LABELS[languageFrom];
-  }, [decode, encoding, languageFrom, mode, scriptFrom]);
+    if (mode === "script") return copy.scriptLabels[scriptFrom];
+    if (mode === "encoding") {
+      return decode ? copy.encodingLabels[encoding] : copy.translator.plainText;
+    }
+    return copy.languageLabels[languageFrom];
+  }, [copy, decode, encoding, languageFrom, mode, scriptFrom]);
 
   const targetLabel = useMemo(() => {
-    if (mode === "script") return SCRIPT_LABELS[scriptTo];
-    if (mode === "encoding") return decode ? "純文字" : ENCODING_LABELS[encoding];
-    return LANGUAGE_LABELS[languageTo];
-  }, [decode, encoding, languageTo, mode, scriptTo]);
+    if (mode === "script") return copy.scriptLabels[scriptTo];
+    if (mode === "encoding") {
+      return decode ? copy.translator.plainText : copy.encodingLabels[encoding];
+    }
+    return copy.languageLabels[languageTo];
+  }, [copy, decode, encoding, languageTo, mode, scriptTo]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      const queryLanguage = new URLSearchParams(window.location.search).get(
+        "lang",
+      );
+      const storedLanguage = localStorage.getItem("yijiang-ui-language");
+      const nextLanguage = isUiLocale(queryLanguage)
+        ? queryLanguage
+        : isUiLocale(storedLanguage)
+          ? storedLanguage
+          : "zh-Hant";
+      setUiLanguage(nextLanguage);
+      setLanguageReady(true);
+      document.documentElement.lang = nextLanguage;
+      document.title =
+        nextLanguage === "en"
+          ? "Yijiang | Free script conversion, encoding, and translation tools"
+          : "譯匠｜免費簡繁轉換、文字編碼與中英翻譯工具";
+      setNotice(APP_COPY[nextLanguage].notices.ready);
       setConsent(
         (localStorage.getItem("yijiang-ad-consent") as Consent) || null,
       );
@@ -206,6 +227,16 @@ export default function Home() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!languageReady) return;
+    localStorage.setItem("yijiang-ui-language", uiLanguage);
+    document.documentElement.lang = uiLanguage;
+    document.title =
+      uiLanguage === "en"
+        ? "Yijiang | Free script conversion, encoding, and translation tools"
+        : "譯匠｜免費簡繁轉換、文字編碼與中英翻譯工具";
+  }, [languageReady, uiLanguage]);
 
   const refreshQuota = useCallback(async () => {
     try {
@@ -246,7 +277,24 @@ export default function Home() {
   function chooseMode(nextMode: Mode) {
     setMode(nextMode);
     setOutput("");
-    setNotice("準備就緒");
+    setNotice(copy.notices.ready);
+  }
+
+  function changeUiLanguage(nextLanguage: UiLocale) {
+    setUiLanguage(nextLanguage);
+    setLanguageReady(true);
+    document.documentElement.lang = nextLanguage;
+    document.title =
+      nextLanguage === "en"
+        ? "Yijiang | Free script conversion, encoding, and translation tools"
+        : "譯匠｜免費簡繁轉換、文字編碼與中英翻譯工具";
+    const url = new URL(window.location.href);
+    if (nextLanguage === "en") {
+      url.searchParams.set("lang", "en");
+    } else {
+      url.searchParams.delete("lang");
+    }
+    window.history.replaceState({}, "", url);
   }
 
   function selectAdjacentMode(
@@ -286,12 +334,12 @@ export default function Home() {
 
   async function runConversion() {
     if (!input.trim()) {
-      setNotice("請先輸入要處理的文字");
+      setNotice(copy.notices.inputRequired);
       return;
     }
 
     setBusy(true);
-    setNotice("處理中…");
+    setNotice(copy.notices.processing);
     setCopied(false);
 
     try {
@@ -314,7 +362,7 @@ export default function Home() {
         });
         const responseText = await response.text();
         if (!responseText) {
-          throw new Error("翻譯服務沒有回應，請稍後再試");
+          throw new Error(copy.notices.emptyResponse);
         }
         const data = JSON.parse(responseText) as {
           translation?: string;
@@ -322,15 +370,17 @@ export default function Home() {
           remaining?: number;
         };
         if (!response.ok || !data.translation) {
-          throw new Error(data.error || "翻譯服務暫時無法使用");
+          throw new Error(data.error || copy.notices.serviceUnavailable);
         }
         setOutput(data.translation);
         if (typeof data.remaining === "number") setRemaining(data.remaining);
       }
-      setNotice("已完成");
+      setNotice(copy.notices.done);
     } catch (error) {
       setOutput("");
-      setNotice(error instanceof Error ? error.message : "轉換失敗，請再試一次");
+      setNotice(
+        error instanceof Error ? error.message : copy.notices.conversionFailed,
+      );
     } finally {
       setBusy(false);
     }
@@ -341,10 +391,10 @@ export default function Home() {
     try {
       await navigator.clipboard.writeText(output);
       setCopied(true);
-      setNotice("已複製到剪貼簿");
+      setNotice(copy.notices.copied);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      setNotice("無法寫入剪貼簿，請手動選取結果");
+      setNotice(copy.notices.clipboardWriteFailed);
     }
   }
 
@@ -352,9 +402,9 @@ export default function Home() {
     try {
       const text = await navigator.clipboard.readText();
       setInput(text);
-      setNotice("已貼上");
+      setNotice(copy.notices.pasted);
     } catch {
-      setNotice("請允許瀏覽器讀取剪貼簿");
+      setNotice(copy.notices.clipboardReadFailed);
     }
   }
 
@@ -363,8 +413,8 @@ export default function Home() {
     setSettingsOpen(false);
     setNotice(
       apiSettings.provider === "builtin"
-        ? "已使用免費翻譯額度"
-        : "API 設定已儲存在這台裝置",
+        ? copy.notices.freeQuotaSaved
+        : copy.notices.apiSettingsSaved,
     );
   }
 
@@ -372,7 +422,7 @@ export default function Home() {
     localStorage.removeItem("yijiang-api-settings");
     setApiSettings(DEFAULT_API_SETTINGS);
     setSettingsOpen(false);
-    setNotice("已清除這台裝置上的 API 設定");
+    setNotice(copy.notices.settingsCleared);
   }
 
   function updateConsent(value: Exclude<Consent, null>) {
@@ -389,36 +439,22 @@ export default function Home() {
         name: "譯匠",
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "Any",
-        inLanguage: "zh-Hant",
-        description:
-          "免費簡繁體轉換、文字編碼解碼與中文英文翻譯工具。",
+        inLanguage: uiLanguage,
+        description: copy.hero.description,
         offers: { "@type": "Offer", price: "0", priceCurrency: "TWD" },
         featureList: [
-          "繁體中文與簡體中文互換",
-          "Base64、URL、HTML、Unicode 與 UTF-8 Hex 編碼解碼",
-          "中文與英文互譯",
+          copy.features.scriptTitle,
+          copy.features.encodingTitle,
+          copy.features.translationTitle,
         ],
       },
       {
         "@type": "FAQPage",
-        mainEntity: [
-          {
-            "@type": "Question",
-            name: "簡繁轉換會消耗免費額度嗎？",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "不會。簡繁轉換與文字編碼都在瀏覽器內完成，不消耗中英翻譯額度。",
-            },
-          },
-          {
-            "@type": "Question",
-            name: "API Key 會被保存嗎？",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "自備的 API Key 只儲存在目前裝置的瀏覽器，不會寫入本站資料庫。",
-            },
-          },
-        ],
+        mainEntity: copy.faq.items.slice(0, 2).map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: { "@type": "Answer", text: item.answer },
+        })),
       },
     ],
   };
@@ -426,23 +462,36 @@ export default function Home() {
   return (
     <>
       <a className="skip-link" href="#translator">
-        跳至轉換工具
+        {uiLanguage === "en" ? "Skip to conversion tool" : "跳至轉換工具"}
       </a>
       <header className="site-header">
-        <a className="brand" href="#" aria-label="譯匠首頁">
+        <a className="brand" href="#" aria-label={copy.header.homeAria}>
           <BrandMark />
           <strong>譯匠</strong>
         </a>
-        <nav aria-label="主要導覽">
-          <a href="#features">功能</a>
-          <a href="#guide">使用說明</a>
-          <a href="/privacy">隱私</a>
+        <nav aria-label={copy.header.navAria}>
+          <a href="#features">{copy.header.features}</a>
+          <a href="#guide">{copy.header.guide}</a>
+          <a href={`/privacy${uiLanguage === "en" ? "?lang=en" : ""}`}>
+            {copy.header.privacy}
+          </a>
           <button type="button" onClick={() => setSettingsOpen(true)}>
-            API 設定
+            {copy.header.apiSettings}
           </button>
         </nav>
+        <button
+          className="language-toggle"
+          type="button"
+          aria-label={copy.header.languageToggleAria}
+          aria-pressed={uiLanguage === "en"}
+          onClick={() =>
+            changeUiLanguage(uiLanguage === "en" ? "zh-Hant" : "en")
+          }
+        >
+          {copy.header.languageToggle}
+        </button>
         <a className="header-cta" href="#translator">
-          立即使用
+          {copy.header.useNow}
         </a>
       </header>
 
@@ -452,19 +501,27 @@ export default function Home() {
           <div className="hero-orb hero-orb-right" />
           <p className="eyebrow">
             <span />
-            免費、快速、免安裝
+            {copy.hero.eyebrow}
           </p>
-          <h1 id="hero-title">文字，換一種方式抵達</h1>
-          <p>簡繁、編碼與中英翻譯，一個工作區快速完成。</p>
+          <h1 id="hero-title">{copy.hero.title}</h1>
+          <p>{copy.hero.description}</p>
         </section>
 
-        <section className="translator-wrap" id="translator" aria-label="文字轉換工具">
-          <div className="mode-tabs" role="tablist" aria-label="選擇轉換功能">
+        <section
+          className="translator-wrap"
+          id="translator"
+          aria-label={copy.translator.aria}
+        >
+          <div
+            className="mode-tabs"
+            role="tablist"
+            aria-label={copy.translator.tabsAria}
+          >
             {(
               [
-                ["script", "簡繁轉換"],
-                ["encoding", "文字編碼"],
-                ["translate", "中英翻譯"],
+                ["script", copy.translator.script],
+                ["encoding", copy.translator.encoding],
+                ["translate", copy.translator.translate],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -476,7 +533,9 @@ export default function Home() {
                 onKeyDown={(event) => selectAdjacentMode(event, value)}
               >
                 {label}
-                {value !== "translate" && <small>不限次數</small>}
+                {value !== "translate" && (
+                  <small>{copy.translator.unlimited}</small>
+                )}
               </button>
             ))}
           </div>
@@ -486,13 +545,13 @@ export default function Home() {
               <div className="pane-head">
                 {mode === "script" ? (
                   <select
-                    aria-label="來源文字"
+                    aria-label={copy.translator.sourceText}
                     value={scriptFrom}
                     onChange={(event) =>
                       setScriptFrom(event.target.value as ScriptLocale)
                     }
                   >
-                    {Object.entries(SCRIPT_LABELS).map(([value, label]) => (
+                    {Object.entries(copy.scriptLabels).map(([value, label]) => (
                       <option key={value} value={value}>
                         {label}
                       </option>
@@ -502,13 +561,13 @@ export default function Home() {
                   <span className="static-select">{sourceLabel}</span>
                 ) : (
                   <select
-                    aria-label="來源語言"
+                    aria-label={copy.translator.sourceLanguage}
                     value={languageFrom}
                     onChange={(event) =>
-                      setLanguageFrom(event.target.value as Language)
+                      setLanguageFrom(event.target.value as TranslationLanguage)
                     }
                   >
-                    {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
+                    {Object.entries(copy.languageLabels).map(([value, label]) => (
                       <option key={value} value={value}>
                         {label}
                       </option>
@@ -516,15 +575,15 @@ export default function Home() {
                   </select>
                 )}
                 <button className="text-action" type="button" onClick={pasteInput}>
-                  貼上
+                  {copy.translator.paste}
                 </button>
               </div>
               <textarea
-                aria-label={`${sourceLabel}輸入文字`}
+                aria-label={`${sourceLabel} ${copy.translator.sourceText}`}
                 value={input}
                 maxLength={10000}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="在這裡輸入或貼上文字…"
+                placeholder={copy.translator.inputPlaceholder}
               />
               <div className="pane-foot">
                 <button
@@ -532,9 +591,11 @@ export default function Home() {
                   className="text-action"
                   onClick={() => setInput("")}
                 >
-                  清除
+                  {copy.translator.clear}
                 </button>
-                <span>{input.length.toLocaleString()} / 10,000</span>
+                <span>
+                  {copy.translator.inputCount(input.length.toLocaleString())}
+                </span>
               </div>
             </div>
 
@@ -542,7 +603,7 @@ export default function Home() {
               className="swap-button"
               type="button"
               onClick={swap}
-              aria-label={`交換${sourceLabel}與${targetLabel}`}
+              aria-label={copy.translator.swap(sourceLabel, targetLabel)}
             >
               <ArrowIcon direction="swap" />
             </button>
@@ -551,13 +612,13 @@ export default function Home() {
               <div className="pane-head">
                 {mode === "script" ? (
                   <select
-                    aria-label="目標文字"
+                    aria-label={copy.translator.targetText}
                     value={scriptTo}
                     onChange={(event) =>
                       setScriptTo(event.target.value as ScriptLocale)
                     }
                   >
-                    {Object.entries(SCRIPT_LABELS).map(([value, label]) => (
+                    {Object.entries(copy.scriptLabels).map(([value, label]) => (
                       <option key={value} value={value}>
                         {label}
                       </option>
@@ -565,13 +626,13 @@ export default function Home() {
                   </select>
                 ) : mode === "encoding" ? (
                   <select
-                    aria-label="編碼格式"
+                    aria-label={copy.translator.encodingFormat}
                     value={encoding}
                     onChange={(event) =>
                       setEncoding(event.target.value as Encoding)
                     }
                   >
-                    {Object.entries(ENCODING_LABELS).map(([value, label]) => (
+                    {Object.entries(copy.encodingLabels).map(([value, label]) => (
                       <option key={value} value={value}>
                         {label}
                       </option>
@@ -579,13 +640,13 @@ export default function Home() {
                   </select>
                 ) : (
                   <select
-                    aria-label="目標語言"
+                    aria-label={copy.translator.targetLanguage}
                     value={languageTo}
                     onChange={(event) =>
-                      setLanguageTo(event.target.value as Language)
+                      setLanguageTo(event.target.value as TranslationLanguage)
                     }
                   >
-                    {Object.entries(LANGUAGE_LABELS).map(([value, label]) => (
+                    {Object.entries(copy.languageLabels).map(([value, label]) => (
                       <option key={value} value={value}>
                         {label}
                       </option>
@@ -593,7 +654,7 @@ export default function Home() {
                   </select>
                 )}
                 <span
-                  className={`status ${notice === "已完成" ? "success" : ""}`}
+                  className={`status ${notice === copy.notices.done ? "success" : ""}`}
                   role="status"
                   aria-live="polite"
                 >
@@ -602,22 +663,24 @@ export default function Home() {
                 </span>
               </div>
               <textarea
-                aria-label={`${targetLabel}轉換結果`}
+                aria-label={`${targetLabel} ${copy.translator.outputPlaceholder}`}
                 value={output}
                 readOnly
-                placeholder="轉換結果會顯示在這裡"
+                placeholder={copy.translator.outputPlaceholder}
               />
               <div className="pane-foot">
-                <span>{output.length.toLocaleString()} 個字元</span>
+                <span>
+                  {copy.translator.outputCount(output.length.toLocaleString())}
+                </span>
                 <button
                   className="copy-button"
                   type="button"
                   onClick={copyOutput}
                   disabled={!output}
-                  aria-label="複製轉換結果"
+                  aria-label={copy.translator.copyResult}
                 >
                   <CopyIcon />
-                  {copied ? "已複製" : "複製"}
+                  {copied ? copy.translator.copied : copy.translator.copy}
                 </button>
               </div>
             </div>
@@ -630,7 +693,7 @@ export default function Home() {
               disabled={busy}
               onClick={runConversion}
             >
-              {busy ? "正在處理…" : "開始轉換"}
+              {busy ? copy.translator.processing : copy.translator.start}
               <ArrowIcon />
             </button>
 
@@ -642,76 +705,71 @@ export default function Home() {
                   onChange={(event) => setDecode(event.target.checked)}
                 />
                 <span />
-                {decode ? "解碼模式" : "編碼模式"}
+                {decode ? copy.translator.decodeMode : copy.translator.encodeMode}
               </label>
             ) : mode === "translate" ? (
               <div className="quota">
                 <div>
                   <strong>
                     {apiSettings.provider === "builtin"
-                      ? `今日免費額度 ${20 - remaining}/20`
-                      : "自備金鑰不計免費額度"}
+                      ? copy.translator.dailyQuota(20 - remaining)
+                      : copy.translator.ownKeyQuota}
                   </strong>
                   <button type="button" onClick={() => setSettingsOpen(true)}>
-                    {apiSettings.provider === "builtin" ? "設定自己的 API Key" : "管理 API"}
+                    {apiSettings.provider === "builtin"
+                      ? copy.translator.setOwnKey
+                      : copy.translator.manageApi}
                   </button>
                 </div>
                 <progress
                   value={apiSettings.provider === "builtin" ? 20 - remaining : 0}
                   max={20}
-                  aria-label="今日免費翻譯使用量"
+                  aria-label={copy.translator.quotaAria}
                 />
               </div>
             ) : (
               <p className="local-note">
-                <span>✓</span> 在瀏覽器內完成，不上傳文字、不限次數
+                <span>✓</span> {copy.translator.localNote}
               </p>
             )}
           </div>
         </section>
 
         <AdSlot
-          label="工具下方"
+          label={copy.ad.top}
+          copy={copy}
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_TOP}
         />
 
         <section className="content-section" id="features">
           <div className="section-heading">
-            <p className="eyebrow">一站完成</p>
-            <h2>三種文字工作，一個乾淨介面</h2>
-            <p>常用工具不必分散在不同網站，也不必安裝額外程式。</p>
+            <p className="eyebrow">{copy.features.eyebrow}</p>
+            <h2>{copy.features.title}</h2>
+            <p>{copy.features.description}</p>
           </div>
           <div className="feature-grid">
             <article>
               <span className="feature-icon">繁</span>
-              <h3>準確的簡繁轉換</h3>
-              <p>
-                使用 OpenCC 詞庫支援簡體、台灣繁體與香港繁體，包含常見地區詞彙轉換。
-              </p>
+              <h3>{copy.features.scriptTitle}</h3>
+              <p>{copy.features.scriptDescription}</p>
               <a href="#translator" onClick={() => chooseMode("script")}>
-                開始轉換 <ArrowIcon />
+                {copy.features.scriptAction} <ArrowIcon />
               </a>
             </article>
             <article>
               <span className="feature-icon">{"</>"}</span>
-              <h3>完整的編碼工具</h3>
-              <p>
-                支援 Base64、URL、HTML Entities、Unicode Escape 與 UTF-8 Hex
-                雙向轉換。
-              </p>
+              <h3>{copy.features.encodingTitle}</h3>
+              <p>{copy.features.encodingDescription}</p>
               <a href="#translator" onClick={() => chooseMode("encoding")}>
-                開始編碼 <ArrowIcon />
+                {copy.features.encodingAction} <ArrowIcon />
               </a>
             </article>
             <article>
               <span className="feature-icon">EN</span>
-              <h3>自然的中英互翻</h3>
-              <p>
-                提供每日免費額度，也能使用 OpenAI、OpenRouter、Gemini 或 xAI
-                的自有金鑰。
-              </p>
+              <h3>{copy.features.translationTitle}</h3>
+              <p>{copy.features.translationDescription}</p>
               <a href="#translator" onClick={() => chooseMode("translate")}>
-                開始翻譯 <ArrowIcon />
+                {copy.features.translationAction} <ArrowIcon />
               </a>
             </article>
           </div>
@@ -719,70 +777,40 @@ export default function Home() {
 
         <section className="steps-section" id="guide">
           <div className="section-heading">
-            <p className="eyebrow">使用說明</p>
-            <h2>三步完成文字轉換</h2>
+            <p className="eyebrow">{copy.guide.eyebrow}</p>
+            <h2>{copy.guide.title}</h2>
           </div>
           <ol className="steps">
-            <li>
-              <span>01</span>
-              <div>
-                <h3>選擇功能</h3>
-                <p>切換簡繁、編碼或中英翻譯。</p>
-              </div>
-            </li>
-            <li>
-              <span>02</span>
-              <div>
-                <h3>貼上文字</h3>
-                <p>每次最多可處理 10,000 個字元。</p>
-              </div>
-            </li>
-            <li>
-              <span>03</span>
-              <div>
-                <h3>轉換並複製</h3>
-                <p>取得結果後一鍵複製，立即使用。</p>
-              </div>
-            </li>
+            {copy.guide.steps.map((step, index) => (
+              <li key={step.title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>{step.title}</h3>
+                  <p>{step.description}</p>
+                </div>
+              </li>
+            ))}
           </ol>
         </section>
 
         <AdSlot
-          label="內容中段"
+          label={copy.ad.content}
+          copy={copy}
           slot={process.env.NEXT_PUBLIC_ADSENSE_SLOT_CONTENT}
         />
 
         <section className="faq-section" id="faq">
           <div className="section-heading">
-            <p className="eyebrow">常見問題</p>
-            <h2>關於額度、隱私與 API</h2>
+            <p className="eyebrow">{copy.faq.eyebrow}</p>
+            <h2>{copy.faq.title}</h2>
           </div>
           <div className="faq-list">
-            <details>
-              <summary>簡繁與編碼轉換會消耗額度嗎？</summary>
-              <p>
-                不會。這兩項功能完全在瀏覽器中執行，不會呼叫翻譯 API，也沒有每日次數限制。
-              </p>
-            </details>
-            <details>
-              <summary>免費中英翻譯有什麼限制？</summary>
-              <p>
-                每位訪客每天最多使用 20 次、每分鐘最多 5
-                次。限制能保護免費金鑰，讓更多人都能使用服務。
-              </p>
-            </details>
-            <details>
-              <summary>我的 API Key 安全嗎？</summary>
-              <p>
-                自備金鑰只儲存在目前裝置的瀏覽器，送出翻譯請求時才短暫傳送，不會寫入本站資料庫。共用裝置使用後請清除設定。
-              </p>
-            </details>
-            <details>
-              <summary>可以處理哪些中文地區用語？</summary>
-              <p>
-                支援簡體中文、台灣繁體與香港繁體。選擇「台灣詞彙」時，還會轉換常見地區用語。
-              </p>
-            </details>
+            {copy.faq.items.map((item) => (
+              <details key={item.question}>
+                <summary>{item.question}</summary>
+                <p>{item.answer}</p>
+              </details>
+            ))}
           </div>
         </section>
       </main>
@@ -793,14 +821,18 @@ export default function Home() {
             <BrandMark />
             <strong>譯匠</strong>
           </a>
-          <p>讓文字跨越語言與編碼的距離。</p>
+          <p>{copy.footer.tagline}</p>
         </div>
         <div className="footer-links">
-          <a href="#features">功能</a>
-          <a href="#guide">使用說明</a>
-          <a href="#faq">常見問題</a>
-          <a href="/privacy">隱私權政策</a>
-          <a href="/terms">服務條款</a>
+          <a href="#features">{copy.footer.features}</a>
+          <a href="#guide">{copy.footer.guide}</a>
+          <a href="#faq">{copy.footer.faq}</a>
+          <a href={`/privacy${uiLanguage === "en" ? "?lang=en" : ""}`}>
+            {copy.footer.privacy}
+          </a>
+          <a href={`/terms${uiLanguage === "en" ? "?lang=en" : ""}`}>
+            {copy.footer.terms}
+          </a>
         </div>
         <p className="copyright">© {new Date().getFullYear()} 譯匠</p>
       </footer>
@@ -823,18 +855,16 @@ export default function Home() {
               type="button"
               className="modal-close"
               onClick={() => setSettingsOpen(false)}
-              aria-label="關閉 API 設定"
+              aria-label={copy.settings.close}
             >
               ×
             </button>
-            <p className="eyebrow">翻譯服務</p>
-            <h2 id="api-settings-title">API 設定</h2>
-            <p className="modal-copy">
-              免費方案每天 20 次；使用自己的金鑰則不計本站額度。設定只儲存在目前瀏覽器。
-            </p>
+            <p className="eyebrow">{copy.settings.eyebrow}</p>
+            <h2 id="api-settings-title">{copy.settings.title}</h2>
+            <p className="modal-copy">{copy.settings.description}</p>
 
             <label>
-              服務供應商
+              {copy.settings.provider}
               <select
                 ref={settingsProviderRef}
                 value={apiSettings.provider}
@@ -850,7 +880,7 @@ export default function Home() {
                   });
                 }}
               >
-                <option value="builtin">譯匠免費額度（每日 20 次）</option>
+                <option value="builtin">{copy.settings.builtin}</option>
                 <option value="openai">OpenAI</option>
                 <option value="openrouter">OpenRouter</option>
                 <option value="gemini">Google Gemini</option>
@@ -861,7 +891,7 @@ export default function Home() {
             {apiSettings.provider !== "builtin" && (
               <>
                 <label>
-                  API Key
+                  {copy.settings.apiKey}
                   <input
                     type="password"
                     autoComplete="off"
@@ -872,11 +902,11 @@ export default function Home() {
                         apiKey: event.target.value.trim(),
                       })
                     }
-                    placeholder="貼上 API Key"
+                    placeholder={copy.settings.apiKeyPlaceholder}
                   />
                 </label>
                 <label>
-                  模型
+                  {copy.settings.model}
                   <input
                     type="text"
                     value={apiSettings.model}
@@ -893,7 +923,7 @@ export default function Home() {
 
             <div className="privacy-chip">
               <span>✓</span>
-              不會將 API Key 寫入伺服器資料庫
+              {copy.settings.privacy}
             </div>
             <div className="modal-actions">
               <button
@@ -901,14 +931,14 @@ export default function Home() {
                 type="button"
                 onClick={clearSettings}
               >
-                清除裝置設定
+                {copy.settings.clear}
               </button>
               <button
                 className="primary-button"
                 type="button"
                 onClick={saveSettings}
               >
-                儲存設定
+                {copy.settings.save}
               </button>
             </div>
           </section>
@@ -916,20 +946,19 @@ export default function Home() {
       )}
 
       {consent === null && (
-        <aside className="consent-banner" aria-label="廣告與隱私設定">
+        <aside className="consent-banner" aria-label={copy.consent.aria}>
           <div>
-            <strong>廣告與隱私</strong>
-            <p>
-              我們使用廣告維持免費服務。接受後 Google
-              可能使用 Cookie 顯示與衡量廣告；拒絕不影響轉換功能。
-            </p>
+            <strong>{copy.consent.title}</strong>
+            <p>{copy.consent.description}</p>
           </div>
-          <a href="/privacy">瞭解更多</a>
+          <a href={`/privacy${uiLanguage === "en" ? "?lang=en" : ""}`}>
+            {copy.consent.learnMore}
+          </a>
           <button type="button" className="secondary-button" onClick={() => updateConsent("rejected")}>
-            拒絕
+            {copy.consent.reject}
           </button>
           <button type="button" className="primary-button" onClick={() => updateConsent("accepted")}>
-            接受
+            {copy.consent.accept}
           </button>
         </aside>
       )}

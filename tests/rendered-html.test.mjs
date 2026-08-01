@@ -86,6 +86,19 @@ test("publishes the configured origin in robots and sitemap", async () => {
   assert.doesNotMatch(sitemap, /chatgpt\.site/);
 });
 
+test("renders English legal copy when requested", async () => {
+  for (const [path, expected] of [
+    ["/privacy?lang=en", "Privacy policy"],
+    ["/terms?lang=en", "Terms of service"],
+  ]) {
+    const response = await request(path);
+    const body = await response.text();
+    assert.equal(response.status, 200);
+    assert.match(body, new RegExp(expected));
+    assert.match(body, /Back to Yijiang/);
+  }
+});
+
 test("reports translation quota without exposing an identifier", async () => {
   const response = await request("/api/translate");
   const body = await response.json();

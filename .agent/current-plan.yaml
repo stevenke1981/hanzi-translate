@@ -31,3 +31,8 @@ plan:
       output: canonical robots sitemap OpenGraph 與 WebSite 結構化資料
       verify: lint build test 公開 HTTP 與 390px 瀏覽器驗收
       status: completed
+    - id: T7
+      task: 新增繁中與 English 介面切換
+      output: 雙語文案 本機語言偏好 英文法律頁與文件語言同步
+      verify: lint build test 公開 Worker 瀏覽器切換與轉換驗收
+      status: completed
