@@ -21,3 +21,8 @@ plan:
       output: GitHub URL 與正式部署 URL
       verify: 遠端 commit 與公開 HTTP
       status: completed
+    - id: T5
+      task: 發布到主人自己的 Cloudflare Worker
+      output: Wrangler 設定 workers.dev 公開網址與公開端點驗收
+      verify: wrangler whoami vinext deploy 公開 HTTP 與 API
+      status: completed

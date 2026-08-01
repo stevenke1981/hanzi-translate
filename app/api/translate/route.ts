@@ -211,18 +211,53 @@ async function translateWithMyMemory(
   url.searchParams.set("q", text);
   url.searchParams.set("langpair", `${source}|${target}`);
   const response = await fetch(url, {
-    headers: { accept: "application/json" },
+    headers: {
+      accept: "application/json",
+      "user-agent": "yijiang-translate/0.1 (+https://hanzi-translate.stevenke1981.workers.dev)",
+      "accept-language": "en-US,en;q=0.9",
+      referer: "https://hanzi-translate.stevenke1981.workers.dev/",
+    },
   });
-  if (!response.ok) throw new Error("免費翻譯服務暫時忙碌");
-  const data = (await response.json()) as {
-    responseData?: { translatedText?: string };
-    responseStatus?: number;
-    responseDetails?: string;
-  };
-  const translated = data.responseData?.translatedText?.trim();
-  if (!translated || (data.responseStatus && data.responseStatus >= 400)) {
-    throw new Error(data.responseDetails || "免費翻譯服務暫時無法使用");
+  if (response.ok) {
+    const data = (await response.json()) as {
+      responseData?: { translatedText?: string };
+      responseStatus?: number;
+      responseDetails?: string;
+    };
+    const translated = data.responseData?.translatedText?.trim();
+    if (translated && (!data.responseStatus || data.responseStatus < 400)) {
+      return translated;
+    }
   }
+
+  const fallbackUrl = new URL(
+    "https://translate.googleapis.com/translate_a/single",
+  );
+  fallbackUrl.searchParams.set("client", "gtx");
+  fallbackUrl.searchParams.set("sl", source === "en" ? "en" : source);
+  fallbackUrl.searchParams.set("tl", target === "en" ? "en" : target);
+  fallbackUrl.searchParams.set("dt", "t");
+  fallbackUrl.searchParams.set("q", text);
+  const fallbackResponse = await fetch(fallbackUrl, {
+    headers: {
+      accept: "application/json",
+      "user-agent":
+        "yijiang-translate/0.1 (+https://hanzi-translate.stevenke1981.workers.dev)",
+    },
+  });
+  if (!fallbackResponse.ok) throw new Error("免費翻譯服務暫時忙碌");
+  const fallbackData = (await fallbackResponse.json()) as unknown;
+  const translated = Array.isArray(fallbackData)
+    ? fallbackData[0]
+        ?.filter(
+          (segment): segment is [string] =>
+            Array.isArray(segment) && typeof segment[0] === "string",
+        )
+        .map(([segment]) => segment)
+        .join("")
+        .trim()
+    : "";
+  if (!translated) throw new Error("免費翻譯服務暫時無法使用");
   return translated;
 }
 

@@ -9,6 +9,7 @@
     "install:ci": "npm ci --no-audit --no-fund",
     "dev": "vite",
     "build": "node scripts/build-verified.mjs",
+    "deploy:cloudflare": "vinext deploy",
     "start": "vinext start",
     "test": "npm run build && node --experimental-strip-types --test tests/*.test.mjs",
     "validate:artifact": "node scripts/validate-artifact.mjs",

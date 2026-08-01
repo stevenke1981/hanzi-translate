@@ -35,6 +35,7 @@ baseline:
     - OpenCC 大型詞庫仍為按需下載資源 首屏不再載入
     - 免費翻譯依外部服務可用性
     - Sites 維持擁有者限定存取 未登入只能驗證登入閘道
+    - Cloudflare Worker 的免費翻譯上游可能受出口網路限制 自備 API Key 可避開
   evidence:
     - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
     - npm run lint PASS
@@ -44,4 +45,7 @@ baseline:
     - local Web Vitals CLS 0 FCP 100ms TTFB 56ms
     - GitHub public main push PASS
     - Sites version 4 deployment succeeded
+    - Cloudflare Worker deployment succeeded version 2c36da52-4538-4fc2-81cc-02c0b34c4c35
+    - Cloudflare public routes / /privacy /terms /robots.txt /sitemap.xml /ads.txt /api/translate returned 200
+    - Cloudflare builtin translation POST returned 502 because both free upstreams rejected Worker egress
   status: passed

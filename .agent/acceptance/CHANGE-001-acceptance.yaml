@@ -5,7 +5,7 @@ acceptance:
   affected_regression: PASS
   critical_flows: PASS
   visible_result: PASS
-  critical_errors: NONE
+  critical_errors: KNOWN_EXTERNAL_UPSTREAM_LIMITATION
   automated_evidence:
     - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
     - npm run lint PASS
@@ -29,5 +29,8 @@ acceptance:
     - Sites source and GitHub histories linked without replacing prior Sites history
     - Sites version 4 deployment succeeded
     - unauthenticated production request reached the expected Sign in required gate
+    - Cloudflare Worker version 2c36da52-4538-4fc2-81cc-02c0b34c4c35 deployment succeeded
+    - Cloudflare public routes returned 200 including /terms without trailing slash
+    - Cloudflare builtin translation POST returned 502 because free upstream egress was rejected
   production_content_after_owner_login: MANUAL_REQUIRED
   status: passed

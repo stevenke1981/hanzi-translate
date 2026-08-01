@@ -2,7 +2,9 @@
 
 繁體／簡體中文轉換、文字編碼解碼與中英翻譯網站。簡繁與編碼處理全程在瀏覽器內完成，不限次數。
 
-正式網站：<https://hanzi-translate.mulinbro35964.chatgpt.site>
+Cloudflare 公開網站：<https://hanzi-translate.stevenke1981.workers.dev>
+
+Sites 預覽／備援：<https://hanzi-translate.mulinbro35964.chatgpt.site>
 
 原始碼：<https://github.com/stevenke1981/hanzi-translate>
 
@@ -47,7 +49,7 @@ npm test
 複製 `.env.example` 為 `.env.local`，再填入需要的值。不要把 API Key
 提交到 Git。
 
-自備翻譯 API Key 只會儲存在使用者目前的瀏覽器裝置，送出翻譯時才透過本站端點轉送，不會寫入伺服器資料庫。正式環境金鑰請透過 Sites 管理，不要寫入原始碼。
+自備翻譯 API Key 只會儲存在使用者目前的瀏覽器裝置，送出翻譯時才透過本站端點轉送，不會寫入伺服器資料庫。伺服器端翻譯金鑰請透過 Cloudflare Worker secret 或 Sites 管理，不要寫入原始碼。
 
 ## 專案結構
 
@@ -60,6 +62,15 @@ npm test
 ## 部署
 
 本專案使用 Vinext、Vite、Cloudflare plugin 與 Sites，並沿用 `.openai/hosting.json` 內的既有專案識別。發布前必須完成全部品質檢查；請勿建立第二個 Sites 專案或提交雲端憑證。
+
+部署到個人 Cloudflare Worker 前，先確認 Wrangler 已登入你的帳號：
+
+```bash
+npx wrangler whoami
+npm run deploy:cloudflare
+```
+
+部署會使用 `wrangler.jsonc`、`worker/index.ts` 與 `dist/client`，並產生 `workers.dev` 公開網址。自備翻譯 API Key 請透過介面設定，或使用 Cloudflare Worker secret；不要寫入 Git。
 
 ## Codex Desktop
 
