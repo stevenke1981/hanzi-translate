@@ -26,3 +26,8 @@ plan:
       output: Wrangler 設定 workers.dev 公開網址與公開端點驗收
       verify: wrangler whoami vinext deploy 公開 HTTP 與 API
       status: completed
+    - id: T6
+      task: 修正公開 Worker 的 SEO 網域訊號
+      output: canonical robots sitemap OpenGraph 與 WebSite 結構化資料
+      verify: lint build test 公開 HTTP 與 390px 瀏覽器驗收
+      status: completed

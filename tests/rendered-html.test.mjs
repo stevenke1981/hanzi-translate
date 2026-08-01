@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+process.env.NEXT_PUBLIC_SITE_URL = "https://example.test";
+
 const workerUrl = new URL("../dist/server/index.js", import.meta.url);
 workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
 const { default: worker } = await import(workerUrl.href);
@@ -16,16 +18,24 @@ const context = {
 };
 
 function request(path, init) {
-  return worker.fetch(new Request(`https://example.test${path}`, init), env, context);
+  const requestHeaders = new Headers(init?.headers);
+  requestHeaders.set("host", "example.test");
+  requestHeaders.set("x-forwarded-host", "example.test");
+  requestHeaders.set("x-forwarded-proto", "https");
+  return worker.fetch(
+    new Request(`https://example.test${path}`, {
+      ...init,
+      headers: requestHeaders,
+    }),
+    env,
+    context,
+  );
 }
 
 test("renders production metadata and core content", async () => {
   const response = await request("/", {
     headers: {
       accept: "text/html",
-      host: "example.test",
-      "x-forwarded-host": "example.test",
-      "x-forwarded-proto": "https",
     },
   });
   const html = await response.text();
@@ -34,12 +44,19 @@ test("renders production metadata and core content", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
   assert.match(html, /文字，換一種方式抵達/);
   assert.match(html, /property="og:image" content="https:\/\/example\.test\/og\.png"/);
+  assert.match(html, /rel="canonical" href="https:\/\/example\.test\/"/);
+  assert.match(html, /"@type":"WebSite"/);
   assert.doesNotMatch(html, /codex-preview/);
 });
 
-for (const [path, expected] of [
-  ["/privacy", "隱私權政策"],
-  ["/terms", "服務條款"],
+for (const [path, expected, canonical, ogTitle] of [
+  [
+    "/privacy",
+    "隱私權政策",
+    "https://example.test/privacy",
+    "隱私權政策｜譯匠",
+  ],
+  ["/terms", "服務條款", "https://example.test/terms", "服務條款｜譯匠"],
   ["/robots.txt", "User-Agent"],
   ["/sitemap.xml", "<urlset"],
   ["/ads.txt", "AdSense publisher ID"],
@@ -47,9 +64,27 @@ for (const [path, expected] of [
   test(`serves ${path}`, async () => {
     const response = await request(path);
     assert.equal(response.status, 200);
-    assert.match(await response.text(), new RegExp(expected, "i"));
+    const body = await response.text();
+    assert.match(body, new RegExp(expected, "i"));
+    if (canonical) {
+      assert.match(
+        body,
+        new RegExp(`rel="canonical" href="${canonical}"`),
+      );
+      assert.match(body, new RegExp(`property="og:url" content="${canonical}"`));
+      assert.match(body, new RegExp(`property="og:title" content="${ogTitle}"`));
+    }
   });
 }
+
+test("publishes the configured origin in robots and sitemap", async () => {
+  const robots = await (await request("/robots.txt")).text();
+  const sitemap = await (await request("/sitemap.xml")).text();
+
+  assert.match(robots, /Sitemap: https:\/\/example\.test\/sitemap\.xml/);
+  assert.match(sitemap, /<loc>https:\/\/example\.test\/<\/loc>/);
+  assert.doesNotMatch(sitemap, /chatgpt\.site/);
+});
 
 test("reports translation quota without exposing an identifier", async () => {
   const response = await request("/api/translate");

@@ -1,28 +1,25 @@
 import type { MetadataRoute } from "next";
+import {
+  absoluteSiteUrl,
+  getSiteOrigin,
+  SITE_CONTENT_UPDATED_AT,
+} from "../lib/site-metadata";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://hanzi-translate.mulinbro35964.chatgpt.site";
-  const now = new Date();
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = await getSiteOrigin();
+  const lastModified = new Date(`${SITE_CONTENT_UPDATED_AT}T00:00:00.000Z`);
   return [
     {
-      url: base,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1,
+      url: absoluteSiteUrl(base),
+      lastModified,
     },
     {
-      url: `${base}/privacy`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.4,
+      url: absoluteSiteUrl(base, "/privacy"),
+      lastModified,
     },
     {
-      url: `${base}/terms`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.4,
+      url: absoluteSiteUrl(base, "/terms"),
+      lastModified,
     },
   ];
 }

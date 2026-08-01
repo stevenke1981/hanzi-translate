@@ -1,15 +1,14 @@
 import type { MetadataRoute } from "next";
+import { absoluteSiteUrl, getSiteOrigin } from "../lib/site-metadata";
 
-export default function robots(): MetadataRoute.Robots {
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://hanzi-translate.mulinbro35964.chatgpt.site";
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const base = await getSiteOrigin();
   return {
     rules: {
       userAgent: "*",
       allow: "/",
       disallow: ["/api/"],
     },
-    sitemap: `${base}/sitemap.xml`,
+    sitemap: absoluteSiteUrl(base, "/sitemap.xml"),
   };
 }

@@ -4,6 +4,19 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "服務條款",
   description: "譯匠免費文字轉換與翻譯服務的使用條款。",
+  alternates: {
+    canonical: "/terms",
+  },
+  openGraph: {
+    type: "website",
+    title: "服務條款｜譯匠",
+    description: "譯匠免費文字轉換與翻譯服務的使用條款。",
+    url: "/terms",
+  },
+  twitter: {
+    title: "服務條款｜譯匠",
+    description: "譯匠免費文字轉換與翻譯服務的使用條款。",
+  },
 };
 
 export default function TermsPage() {

@@ -1,31 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 import "./globals.css";
+import { getSiteOrigin } from "../lib/site-metadata";
 
 const siteName = "譯匠";
 const title = "譯匠｜免費簡繁轉換、文字編碼與中英翻譯工具";
 const description =
   "免費線上簡繁體中文轉換、Base64、URL、Unicode、HTML 與 UTF-8 編碼解碼，並支援中文英文互譯。免安裝、快速、重視隱私。";
-const fallbackSiteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://hanzi-translate.mulinbro35964.chatgpt.site";
-
 async function metadataBase() {
-  const incomingHeaders = await headers();
-  const host =
-    incomingHeaders.get("x-forwarded-host") || incomingHeaders.get("host");
-  const protocol =
-    incomingHeaders.get("x-forwarded-proto") === "http" ? "http" : "https";
-
-  if (host) {
-    try {
-      return new URL(`${protocol}://${host}`);
-    } catch {
-      // Fall through to the reviewed production URL.
-    }
-  }
-
-  return new URL(fallbackSiteUrl);
+  return getSiteOrigin();
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -53,10 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     category: "utility",
     referrer: "origin-when-cross-origin",
     alternates: {
-      languages: {
-        "zh-TW": "/",
-        "zh-CN": "/",
-      },
+      canonical: "/",
     },
     openGraph: {
       type: "website",
@@ -64,6 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName,
       title,
       description,
+      url: "/",
       images: [
         {
           url: "/og.png",
@@ -97,14 +77,31 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const siteUrl = (await getSiteOrigin()).toString().replace(/\/$/, "");
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}/#website`,
+    url: `${siteUrl}/`,
+    name: siteName,
+    alternateName: "譯匠文字工具",
+    inLanguage: "zh-Hant",
+  };
+
   return (
     <html lang="zh-Hant">
-      <body>{children}</body>
+      <body>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

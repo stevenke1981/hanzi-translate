@@ -3,7 +3,23 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "隱私權政策",
-  description: "瞭解譯匠如何處理文字、API Key、使用額度、Cookie 與廣告資料。",
+  description:
+    "瞭解譯匠如何處理文字、API Key、使用額度、Cookie 與廣告資料。",
+  alternates: {
+    canonical: "/privacy",
+  },
+  openGraph: {
+    type: "website",
+    title: "隱私權政策｜譯匠",
+    description:
+      "瞭解譯匠如何處理文字、API Key、使用額度、Cookie 與廣告資料。",
+    url: "/privacy",
+  },
+  twitter: {
+    title: "隱私權政策｜譯匠",
+    description:
+      "瞭解譯匠如何處理文字、API Key、使用額度、Cookie 與廣告資料。",
+  },
 };
 
 export default function PrivacyPage() {
