@@ -36,3 +36,8 @@ plan:
       output: 雙語文案 本機語言偏好 英文法律頁與文件語言同步
       verify: lint build test 公開 Worker 瀏覽器切換與轉換驗收
       status: completed
+    - id: T8
+      task: 啟用 AquaMoon 正式自訂網域
+      output: translate.aquamoon.app Worker custom domain、正式 SEO origin 與部署文件同步
+      verify: wrangler deploy 公開 HTTPS 路由、SEO 路徑與翻譯 API 實測
+      status: completed

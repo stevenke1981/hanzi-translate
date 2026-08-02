@@ -2,7 +2,9 @@
 
 繁體／簡體中文轉換、文字編碼解碼與中英翻譯網站。簡繁與編碼處理全程在瀏覽器內完成，不限次數。
 
-Cloudflare 公開網站：<https://hanzi-translate.stevenke1981.workers.dev>
+Cloudflare 正式網站：<https://translate.aquamoon.app>
+
+Cloudflare Worker 備援網址：<https://hanzi-translate.stevenke1981.workers.dev>
 
 Sites 預覽／備援：<https://hanzi-translate.mulinbro35964.chatgpt.site>
 

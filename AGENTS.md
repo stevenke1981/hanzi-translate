@@ -5,7 +5,9 @@
 This repository is the production source for 譯匠, a Traditional Chinese-first
 translation and text conversion website.
 
-Live site: https://hanzi-translate.mulinbro35964.chatgpt.site
+Live site: https://translate.aquamoon.app
+
+Cloudflare Worker fallback: https://hanzi-translate.stevenke1981.workers.dev
 
 ## Preserve
 

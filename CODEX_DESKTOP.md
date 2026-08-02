@@ -29,7 +29,10 @@ npm run dev
 
 ## 正式網站
 
-<https://hanzi-translate.mulinbro35964.chatgpt.site>
+<https://translate.aquamoon.app>
+
+Cloudflare Worker 備援網址：
+<https://hanzi-translate.stevenke1981.workers.dev>
 
 `.openai/hosting.json` 已保留原 Sites 專案識別。Codex 修改網站時，不要刪除、
 改寫或重新建立這個檔案。

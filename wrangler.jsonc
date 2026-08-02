@@ -9,6 +9,12 @@
     "not_found_handling": "none",
     "binding": "ASSETS"
   },
+  "routes": [
+    {
+      "pattern": "translate.aquamoon.app",
+      "custom_domain": true
+    }
+  ],
   "images": {
     "binding": "IMAGES"
   }

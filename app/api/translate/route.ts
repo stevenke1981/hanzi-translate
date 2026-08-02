@@ -1,3 +1,5 @@
+import { PUBLIC_SITE_URL } from "../../../lib/site-metadata";
+
 const DAILY_LIMIT = 20;
 const MINUTE_LIMIT = 5;
 const MAX_LENGTH = 10_000;
@@ -171,7 +173,7 @@ async function translateWithOpenAICompatible(
         ? {
             "HTTP-Referer":
               process.env.NEXT_PUBLIC_SITE_URL ||
-              "https://hanzi-translate.mulinbro35964.chatgpt.site",
+              PUBLIC_SITE_URL,
             "X-Title": "譯匠",
           }
         : {}),
@@ -213,9 +215,9 @@ async function translateWithMyMemory(
   const response = await fetch(url, {
     headers: {
       accept: "application/json",
-      "user-agent": "yijiang-translate/0.1 (+https://hanzi-translate.stevenke1981.workers.dev)",
+      "user-agent": `yijiang-translate/0.1 (+${PUBLIC_SITE_URL})`,
       "accept-language": "en-US,en;q=0.9",
-      referer: "https://hanzi-translate.stevenke1981.workers.dev/",
+      referer: `${PUBLIC_SITE_URL}/`,
     },
   });
   if (response.ok) {
@@ -242,7 +244,7 @@ async function translateWithMyMemory(
     headers: {
       accept: "application/json",
       "user-agent":
-        "yijiang-translate/0.1 (+https://hanzi-translate.stevenke1981.workers.dev)",
+        `yijiang-translate/0.1 (+${PUBLIC_SITE_URL})`,
     },
   });
   if (!fallbackResponse.ok) throw new Error("免費翻譯服務暫時忙碌");

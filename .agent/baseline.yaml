@@ -52,4 +52,8 @@ baseline:
     - Cloudflare Worker deployment succeeded version a2cedccf-6d21-4535-9843-b8d2e89d7b05
     - Cloudflare public routes / /privacy /terms /robots.txt /sitemap.xml /ads.txt /api/translate returned 200
     - Cloudflare builtin translation POST returned 502 because both free upstreams rejected Worker egress
+    - Cloudflare Worker deployment succeeded version 48f68f20-ad7c-4e0f-aa5a-604aa2c7a099 with custom domain translate.aquamoon.app
+    - translate.aquamoon.app HTTPS routes / /privacy /terms /robots.txt /sitemap.xml /ads.txt /api/translate returned 200
+    - translate.aquamoon.app canonical, OpenGraph, WebSite JSON-LD and sitemap origin use the AquaMoon production hostname
+    - translate.aquamoon.app builtin translation POST returned 200 with a real translated result
   status: passed
