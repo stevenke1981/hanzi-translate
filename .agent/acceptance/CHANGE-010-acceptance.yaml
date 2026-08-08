@@ -1,0 +1,25 @@
+acceptance:
+  change_id: CHANGE-010
+  build_or_launch: PASS
+  requested_user_scenario: PASS
+  affected_regression: PASS
+  critical_flows: PASS
+  visible_result: PASS
+  critical_errors: NONE
+  automated_evidence:
+    - npm run lint PASS
+    - npm run build PASS
+    - npm test 19 of 19 PASS
+    - Apex Host renders AquaMoon landing page with canonical and OpenGraph origin
+    - Translation Host keeps 譯匠 route with translate.aquamoon.app canonical
+    - Apex robots.txt and sitemap.xml use https://aquamoon.app origin
+  browser_evidence:
+    - agent-browser title and root landing page verified
+    - 390px mobile viewport has no horizontal overflow
+    - 1440px desktop viewport has no horizontal overflow
+    - FAQ details interaction and CTA/privacy/terms links verified
+  publication_evidence:
+    - wrangler.jsonc contains aquamoon.app custom domain route
+    - No Cloudflare deployment or DNS mutation performed in this change
+  production_content_after_owner_login: MANUAL_REQUIRED
+  status: passed

@@ -41,3 +41,28 @@ plan:
       output: translate.aquamoon.app Worker custom domain、正式 SEO origin 與部署文件同步
       verify: wrangler deploy 公開 HTTPS 路由、SEO 路徑與翻譯 API 實測
       status: completed
+    - id: T9
+      task: 加入自動偵測中文腳本與輸出流程
+      output: 自動辨識簡體／繁體／英文，簡體可本機轉繁體或呼叫翻譯成英文
+      verify: 核心偵測測試、UI 自動模式、既有簡繁／編碼／翻譯回歸
+      status: completed
+    - id: T10
+      task: 建立 AquaMoon 根網域首頁 Walking Skeleton
+      output: Host-aware 根首頁、品牌內容與譯匠入口
+      verify: 本機根網域 Host 與 translate Host 渲染結果
+      status: completed
+    - id: T11
+      task: 同步根網域 SEO 與 Cloudflare route 設定
+      output: canonical、OpenGraph、robots、sitemap 與既有 Worker route
+      verify: build artifact 與路由檢查
+      status: completed
+    - id: T12
+      task: 實際瀏覽器與核心回歸驗收
+      output: 桌面／行動首頁與譯匠入口可操作
+      verify: agent-browser、lint、build、test
+      status: completed
+    - id: T13
+      task: 將 AdSense 自動廣告、Publisher record 與 adbar01 版位加入網站
+      output: env-driven AdSense script、Publisher ID ads.txt、譯匠頂部 slot 與測試
+      verify: 正式環境建置、公開 HTML、ads.txt、同意後瀏覽器 slot、lint、build、test
+      status: completed

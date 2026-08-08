@@ -13,6 +13,10 @@
     {
       "pattern": "translate.aquamoon.app",
       "custom_domain": true
+    },
+    {
+      "pattern": "aquamoon.app",
+      "custom_domain": true
     }
   ],
   "images": {

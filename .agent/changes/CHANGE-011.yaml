@@ -1,0 +1,26 @@
+id: CHANGE-011
+title: 將 AdSense 自動廣告與 adbar01 版位加入網站
+classification: Feature
+risk: MEDIUM
+intent:
+  goal: 讓正式網站每個頁面的 head 都載入 Google AdSense 自動廣告 script，並在譯匠工具顯示 adbar01
+  user_outcome: Google AdSense 可在根首頁、譯匠工具與法律頁使用同一個 Publisher ID，譯匠工具頂部使用指定廣告單元
+  primary_user_scenario: 開啟公開頁面並在 head 找到 adsbygoogle.js；接受廣告同意後在譯匠頂部看到 adbar01
+in_scope:
+  - 在 Root Layout 以 NEXT_PUBLIC_ADSENSE_CLIENT 注入全站 AdSense script
+  - 以 NEXT_PUBLIC_ADSENSE_SLOT_TOP 設定 adbar01 頂部廣告 slot
+  - 保留既有廣告 slot、同意流程與 ads.txt 路由
+  - 以測試驗證設定 Publisher ID 時的 head 與 ads.txt 輸出
+out_of_scope:
+  - 代替主人建立或提交 Google AdSense 帳號申請
+  - 填寫付款、身分驗證或其他 Google 帳務資料
+  - 將 Publisher ID 寫入 git 追蹤的原始碼或設定檔
+protected_behavior:
+  - 未設定 Publisher ID 時不載入 script
+  - API Key 僅留在使用者裝置，簡繁與編碼轉換維持本機不限次數
+  - 既有 legal、SEO、consent 與廣告 slot 行為保留
+acceptance:
+  - 正式建置包含 id=google-adsense-script、adsbygoogle.js、crossorigin=anonymous
+  - 接受廣告同意後，譯匠工具輸出設定中的 adbar01 廣告 slot
+  - /ads.txt 輸出 google.com DIRECT publisher record
+  - lint、build、test 通過且既有核心測試無回歸

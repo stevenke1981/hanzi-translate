@@ -1,0 +1,27 @@
+id: CHANGE-010
+title: 建立 AquaMoon 根網域首頁作為 AdSense 申請入口
+classification: Feature
+risk: MEDIUM
+intent:
+  goal: 讓 aquamoon.app 成為可被 Google AdSense 審核的品牌根網域入口
+  user_outcome: 訪客可從根網域了解 AquaMoon、進入譯匠與閱讀隱私及服務條款
+  primary_user_scenario: 開啟 https://aquamoon.app，看到原創品牌首頁並可前往 translate.aquamoon.app
+in_scope:
+  - 新增 AquaMoon 根網域品牌首頁與清楚的導覽、產品說明及 AdSense 相關法律連結
+  - 以請求 Host 區分 aquamoon.app 根首頁與 translate.aquamoon.app 譯匠工具
+  - 根網域使用正確的 canonical、OpenGraph、WebSite 與 Organization 訊號
+  - 根網域 robots.txt 與 sitemap.xml 使用根網域 origin
+  - 保留既有譯匠頁面與翻譯、SEO、同意流程及廣告版位
+out_of_scope:
+  - Google AdSense 帳號申請、付款資料、身分驗證與送出審核
+  - Cloudflare 正式部署、DNS 變更與公開發布
+  - 填入尚未取得的 AdSense Publisher ID 或廣告單元 ID
+protected_behavior:
+  - translate.aquamoon.app 根路徑仍顯示譯匠工具
+  - 既有 /privacy、/terms、/robots.txt、/sitemap.xml、/ads.txt 與 /api/translate 路由保留
+  - API Key 僅留在使用者裝置，簡繁與編碼轉換維持本機不限次數
+acceptance:
+  - 本機 Host 為 aquamoon.app 時根路徑渲染 AquaMoon 首頁
+  - 本機 Host 為 translate.aquamoon.app 時根路徑仍渲染譯匠
+  - 根首頁包含前往譯匠、隱私權政策與服務條款的可操作連結
+  - lint、build、test 通過且既有核心測試無回歸

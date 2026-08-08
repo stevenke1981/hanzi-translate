@@ -5,12 +5,19 @@ baseline:
     - Base64 URL HTML Unicode UTF-8 Hex 雙向轉換
     - 免費與自備金鑰中英翻譯設定
     - 裝置 API 設定清除
+    - 自動偵測簡體中文並輸出繁體中文或英文
     - 隱私同意 法律 SEO 與廣告路由
+    - AquaMoon 根網域品牌首頁與譯匠入口
+    - 全站 AdSense 自動廣告 head script、Publisher ID ads.txt 與譯匠 adbar01 頂部版位
   critical_user_flows:
     - 台灣詞彙輸入轉為正確簡體地區詞彙
     - 編碼後切換解碼並還原原文
     - 儲存後清除裝置 API 設定
     - 桌面與 390px 行動版操作
+    - 自動模式辨識簡體中文並完成兩種輸出目標
+    - 根網域首頁導覽至譯匠、隱私權政策與服務條款
+    - 任一頁面的 head 載入 AdSense script 時共用同一個 Publisher ID
+    - 接受廣告同意後譯匠工具顯示設定的頂部 AdSense slot
   protected_behavior:
     - 簡繁與編碼維持本機不限次數
     - API Key 不寫入伺服器資料庫
@@ -18,6 +25,8 @@ baseline:
     - 既有 Sites project_id 不變
   public_interfaces:
     - /
+    - https://aquamoon.app/
+    - https://translate.aquamoon.app/
     - /api/translate
     - /privacy
     - /terms
@@ -34,8 +43,11 @@ baseline:
   known_limitations:
     - OpenCC 大型詞庫仍為按需下載資源 首屏不再載入
     - 免費翻譯依外部服務可用性
+    - 自動模式英文輸出仍受既有免費翻譯上游可用性影響
     - Sites 維持擁有者限定存取 未登入只能驗證登入閘道
     - Cloudflare Worker 的免費翻譯上游可能受出口網路限制 自備 API Key 可避開
+    - AdSense 帳號申請、付款／身分驗證與 Publisher ID 仍需主人手動完成
+    - 後續部署需以 NEXT_PUBLIC_ADSENSE_CLIENT 提供 Publisher ID，避免寫入原始碼
   evidence:
     - npm audit --omit=dev --audit-level=high found 0 vulnerabilities
     - npm run lint PASS
@@ -56,4 +68,12 @@ baseline:
     - translate.aquamoon.app HTTPS routes / /privacy /terms /robots.txt /sitemap.xml /ads.txt /api/translate returned 200
     - translate.aquamoon.app canonical, OpenGraph, WebSite JSON-LD and sitemap origin use the AquaMoon production hostname
     - translate.aquamoon.app builtin translation POST returned 200 with a real translated result
+    - CHANGE-009 local browser acceptance passed for automatic script detection, Traditional output, and English output
+    - CHANGE-010 local Host routing passed: aquamoon.app renders AquaMoon and translate.aquamoon.app renders 譯匠
+    - CHANGE-010 agent-browser desktop and 390px mobile acceptance passed with no horizontal overflow
+    - CHANGE-010 npm run lint, npm run build, and npm test 19 of 19 passed
+    - CHANGE-011 production build and npm test 20 of 20 passed with configured Publisher ID
+    - CHANGE-011 public translate.aquamoon.app HTML and ads.txt contain the configured AdSense integration
+    - CHANGE-011 agent-browser accepted-consent verification found the configured top adbar01 slot at 390px and 1440px with no horizontal overflow
+    - CHANGE-011 Cloudflare Worker deployment succeeded version 70bb06e1-faad-4605-a19f-7db77b2acde4
   status: passed

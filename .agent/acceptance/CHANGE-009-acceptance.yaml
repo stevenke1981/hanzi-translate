@@ -1,0 +1,22 @@
+acceptance:
+  change_id: CHANGE-009
+  build_or_launch: PASS
+  requested_user_scenario: PASS
+  affected_regression: PASS
+  critical_flows: PASS
+  visible_result: PASS
+  critical_errors: NONE
+  automated_evidence:
+    - node --experimental-strip-types --test tests/text-tools.test.mjs PASS (5 of 5)
+    - npm run lint PASS
+    - npm run build PASS
+    - npm test PASS (16 of 16)
+  browser_evidence:
+    - 本機 Vite 預覽自動模式辨識簡體中文並輸出繁體中文：简体中文转换测试 -> 簡體中文轉換測試
+    - 自動模式來源欄位在完成後顯示「簡體中文」，確認偵測結果可見
+    - 自動模式切換 English 並呼叫既有免費翻譯流程：簡體中文輸入 -> Simplified Chinese conversion test
+    - 自動輸出選單保留繁體中文與 English 兩個目標
+  publication_evidence:
+    - 本輪未部署 Cloudflare 或 Sites；正式版本發布需主人確認
+  production_content_after_owner_login: MANUAL_REQUIRED
+  status: passed

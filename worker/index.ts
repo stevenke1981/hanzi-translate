@@ -40,6 +40,12 @@ const worker = {
       }, allowedWidths);
     }
 
+    if ((url.hostname === "aquamoon.app" || url.hostname === "www.aquamoon.app") && url.pathname === "/") {
+      const landingUrl = new URL("/aquamoon", request.url);
+      landingUrl.search = url.search;
+      return handler.fetch(new Request(landingUrl, request), env, ctx);
+    }
+
     return handler.fetch(request, env, ctx);
   },
 };

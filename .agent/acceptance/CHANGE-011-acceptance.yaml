@@ -1,0 +1,29 @@
+acceptance:
+  change_id: CHANGE-011
+  build_or_launch: PASS
+  requested_user_scenario: PASS
+  affected_regression: PASS
+  critical_flows: PASS
+  visible_result: PASS
+  critical_errors: NONE
+  automated_evidence:
+    - npm run lint PASS
+    - npm run build PASS with NEXT_PUBLIC_ADSENSE_CLIENT configured
+    - npm test 20 of 20 PASS
+    - /ads.txt returns google.com publisher record
+    - Root Layout emits the shared AdSense head script when configured
+    - Configured top AdSense slot is present in the browser after accepting ad consent
+  public_evidence:
+    - https://aquamoon.app/ returned HTTP 200 with AquaMoon content, canonical origin, shared AdSense head script, and Publisher ID
+    - https://aquamoon.app/privacy and https://aquamoon.app/terms returned HTTP 200 with shared AdSense head script
+    - https://aquamoon.app/robots.txt and https://aquamoon.app/sitemap.xml returned the aquamoon.app origin
+    - https://aquamoon.app/ads.txt returned the configured publisher record
+    - https://translate.aquamoon.app/ returned HTTP 200 with adsbygoogle.js and configured Publisher ID
+    - https://translate.aquamoon.app/ rendered the configured adbar01 slot after accepting ad consent in agent-browser
+    - https://translate.aquamoon.app/privacy returned HTTP 200 with shared AdSense head script
+    - https://translate.aquamoon.app/ads.txt returned HTTP 200 with publisher record
+  publication_evidence:
+    - Cloudflare Worker deployment 70bb06e1-faad-4605-a19f-7db77b2acde4 succeeded
+    - Custom domains translate.aquamoon.app and aquamoon.app attached to hanzi-translate
+  production_content_after_owner_login: MANUAL_REQUIRED
+  status: passed

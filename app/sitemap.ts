@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 import {
   absoluteSiteUrl,
   getSiteOrigin,
@@ -6,7 +7,8 @@ import {
 } from "../lib/site-metadata";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = await getSiteOrigin();
+  const requestHeaders = await headers();
+  const base = getSiteOrigin(requestHeaders.get("host"));
   const lastModified = new Date(`${SITE_CONTENT_UPDATED_AT}T00:00:00.000Z`);
   return [
     {

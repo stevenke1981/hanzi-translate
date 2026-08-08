@@ -1113,6 +1113,598 @@ footer {
   text-decoration: underline;
 }
 
+.aqua-home {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 88% 5%, rgba(114, 179, 255, 0.14), transparent 26rem),
+    var(--background);
+}
+
+.aqua-header {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: clamp(18px, 3vw, 42px);
+  align-items: center;
+  min-height: 78px;
+  padding: 0 clamp(22px, 6vw, 90px);
+  border-bottom: 1px solid rgba(217, 229, 240, 0.82);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(18px);
+}
+
+.aqua-header nav {
+  display: flex;
+  gap: clamp(18px, 2.5vw, 34px);
+  color: var(--navy);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.aqua-header nav a {
+  transition: color 160ms ease-out;
+}
+
+.aqua-header nav a:hover,
+.aqua-header nav a:focus-visible {
+  color: var(--blue);
+}
+
+.aqua-header .header-cta {
+  justify-self: end;
+}
+
+.aqua-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: clamp(38px, 8vw, 120px);
+  align-items: center;
+  width: min(1180px, calc(100% - 48px));
+  min-height: 560px;
+  margin: 0 auto;
+  padding: 92px 0 86px;
+}
+
+.aqua-hero-copy {
+  max-width: 680px;
+}
+
+.aqua-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 18px;
+  color: var(--blue-strong);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.aqua-eyebrow span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 5px rgba(20, 184, 166, 0.12);
+}
+
+.aqua-hero h1 {
+  max-width: 650px;
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(2.75rem, 6.2vw, 5.5rem);
+  font-weight: 850;
+  letter-spacing: -0.075em;
+  line-height: 1.06;
+}
+
+.aqua-lede {
+  max-width: 610px;
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: clamp(1.02rem, 1.4vw, 1.22rem);
+  line-height: 1.85;
+}
+
+.aqua-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.aqua-actions .primary-button,
+.aqua-actions .secondary-button,
+.aqua-final-cta .primary-button {
+  min-height: 50px;
+  padding-inline: 22px;
+}
+
+.aqua-actions .primary-button span,
+.aqua-final-cta .primary-button span {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.aqua-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.aqua-note span {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(20, 184, 166, 0.13);
+  color: var(--success);
+  font-size: 0.76rem;
+}
+
+.aqua-hero-art {
+  position: relative;
+  display: grid;
+  width: min(100%, 420px);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  place-items: center;
+  border: 1px solid rgba(168, 205, 244, 0.72);
+  border-radius: 42% 58% 54% 46% / 48% 44% 56% 52%;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(255, 255, 255, 0.96), rgba(230, 243, 255, 0.7) 40%, rgba(200, 226, 255, 0.42) 72%, transparent 73%),
+    linear-gradient(145deg, #f9fcff, #e5f2ff);
+  box-shadow: 0 36px 90px rgba(35, 86, 133, 0.16);
+  transform: rotate(-5deg);
+}
+
+.aqua-hero-art::before {
+  position: absolute;
+  inset: 13%;
+  border: 1px solid rgba(47, 128, 237, 0.2);
+  border-radius: 50%;
+  content: "";
+}
+
+.aqua-moon-core {
+  display: grid;
+  width: 38%;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--blue), #6cafff);
+  box-shadow: 0 20px 38px rgba(47, 128, 237, 0.28);
+  color: white;
+  font-size: clamp(1.5rem, 3.2vw, 2.3rem);
+  font-weight: 900;
+  letter-spacing: -0.08em;
+  transform: rotate(5deg);
+}
+
+.aqua-moon-orbit {
+  position: absolute;
+  border: 1px solid rgba(47, 128, 237, 0.28);
+  border-radius: 50%;
+}
+
+.aqua-moon-orbit-one {
+  width: 68%;
+  height: 30%;
+  transform: rotate(28deg);
+}
+
+.aqua-moon-orbit-two {
+  width: 92%;
+  height: 46%;
+  border-color: rgba(20, 184, 166, 0.22);
+  transform: rotate(-36deg);
+}
+
+.aqua-section {
+  width: min(1120px, calc(100% - 48px));
+  margin: 28px auto 116px;
+}
+
+.aqua-section-heading {
+  max-width: 700px;
+  margin: 0 auto 42px;
+  text-align: center;
+}
+
+.aqua-section-heading .aqua-eyebrow {
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.aqua-section-heading h2,
+.aqua-story h2,
+.aqua-final-cta h2 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(2rem, 4.5vw, 3.35rem);
+  letter-spacing: -0.06em;
+  line-height: 1.17;
+}
+
+.aqua-section-heading > p:last-child {
+  margin: 16px auto 0;
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.aqua-product-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 30px;
+  align-items: start;
+  padding: clamp(26px, 5vw, 54px);
+  border: 1px solid var(--line);
+  border-radius: 26px;
+  background: white;
+  box-shadow: 0 22px 62px rgba(35, 86, 133, 0.08);
+}
+
+.aqua-product-icon {
+  display: grid;
+  width: 74px;
+  height: 74px;
+  place-items: center;
+  border-radius: 22px;
+  background: var(--blue-soft);
+  color: var(--blue-strong);
+  font-size: 2.25rem;
+  font-weight: 900;
+}
+
+.aqua-card-kicker {
+  margin: 0 0 8px;
+  color: var(--blue-strong);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+
+.aqua-product-content h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: clamp(1.45rem, 2.5vw, 2rem);
+  letter-spacing: -0.04em;
+}
+
+.aqua-product-content > p {
+  max-width: 700px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.aqua-feature-list {
+  display: grid;
+  gap: 9px;
+  margin: 22px 0 0;
+  padding: 0;
+  color: var(--text);
+  list-style: none;
+  line-height: 1.65;
+}
+
+.aqua-feature-list li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+
+.aqua-feature-list li::before {
+  flex: 0 0 auto;
+  margin-top: 0.45em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  content: "";
+}
+
+.aqua-text-link {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 26px;
+  color: var(--blue-strong);
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.aqua-text-link:hover,
+.aqua-text-link:focus-visible {
+  text-decoration: underline;
+}
+
+.aqua-section-muted {
+  width: 100%;
+  max-width: none;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 112px max(24px, calc((100% - 1120px) / 2));
+  background: rgba(234, 244, 255, 0.58);
+}
+
+.aqua-principle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.aqua-principle-grid article {
+  padding: 30px;
+  border: 1px solid rgba(168, 205, 244, 0.72);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.aqua-principle-number {
+  color: var(--blue);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.aqua-principle-grid h3 {
+  margin: 20px 0 10px;
+  color: var(--navy);
+  font-size: 1.35rem;
+}
+
+.aqua-principle-grid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.aqua-story {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(36px, 8vw, 120px);
+  align-items: start;
+  padding-top: 112px;
+}
+
+.aqua-story .aqua-eyebrow {
+  margin-bottom: 14px;
+}
+
+.aqua-story-copy {
+  padding-top: 36px;
+}
+
+.aqua-story-copy p {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 1.04rem;
+  line-height: 1.95;
+}
+
+.aqua-faq {
+  margin-top: 0;
+}
+
+.aqua-faq-list {
+  max-width: 840px;
+  margin: 0 auto;
+  border-top: 1px solid var(--line);
+}
+
+.aqua-faq-list details {
+  border-bottom: 1px solid var(--line);
+}
+
+.aqua-faq-list summary {
+  position: relative;
+  padding: 22px 44px 22px 0;
+  color: var(--navy);
+  cursor: pointer;
+  font-weight: 800;
+  list-style: none;
+}
+
+.aqua-faq-list summary::-webkit-details-marker {
+  display: none;
+}
+
+.aqua-faq-list summary::after {
+  position: absolute;
+  top: 17px;
+  right: 0;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  content: "+";
+  font-size: 1.2rem;
+}
+
+.aqua-faq-list details[open] summary::after {
+  content: "−";
+}
+
+.aqua-faq-list details p {
+  max-width: 720px;
+  margin: -4px 0 22px;
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.aqua-final-cta {
+  width: min(1120px, calc(100% - 48px));
+  margin: 0 auto 116px;
+  padding: clamp(38px, 7vw, 74px);
+  border-radius: 28px;
+  background: var(--navy);
+  text-align: center;
+}
+
+.aqua-final-cta .aqua-eyebrow {
+  justify-content: center;
+  color: #72b3ff;
+}
+
+.aqua-final-cta h2 {
+  max-width: 700px;
+  margin: 0 auto 28px;
+  color: white;
+}
+
+.aqua-final-cta .primary-button {
+  width: max-content;
+  margin: 0 auto;
+}
+
+.aqua-footer {
+  padding-top: 52px;
+}
+
+@media (max-width: 860px) {
+  .aqua-header nav {
+    display: none;
+  }
+
+  .aqua-hero {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    padding: 76px 0 72px;
+  }
+
+  .aqua-hero-copy {
+    max-width: none;
+    text-align: center;
+  }
+
+  .aqua-hero .aqua-eyebrow,
+  .aqua-note {
+    justify-content: center;
+  }
+
+  .aqua-lede {
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .aqua-actions {
+    justify-content: center;
+  }
+
+  .aqua-hero-art {
+    width: min(100%, 330px);
+  }
+
+  .aqua-principle-grid,
+  .aqua-story {
+    grid-template-columns: 1fr;
+  }
+
+  .aqua-story-copy {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .aqua-header {
+    min-height: 66px;
+    padding: 0 16px;
+  }
+
+  .aqua-header .brand strong {
+    font-size: 1.3rem;
+  }
+
+  .aqua-header .header-cta {
+    padding: 9px 13px;
+    font-size: 0.8rem;
+  }
+
+  .aqua-hero,
+  .aqua-section,
+  .aqua-final-cta {
+    width: calc(100% - 28px);
+  }
+
+  .aqua-hero {
+    padding: 62px 0 60px;
+  }
+
+  .aqua-hero h1 {
+    font-size: 2.65rem;
+  }
+
+  .aqua-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .aqua-actions .primary-button,
+  .aqua-actions .secondary-button {
+    width: 100%;
+  }
+
+  .aqua-section {
+    margin-bottom: 78px;
+  }
+
+  .aqua-section-heading {
+    margin-bottom: 30px;
+  }
+
+  .aqua-section-heading h2,
+  .aqua-story h2,
+  .aqua-final-cta h2 {
+    font-size: 2rem;
+  }
+
+  .aqua-product-card {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .aqua-product-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 18px;
+    font-size: 1.8rem;
+  }
+
+  .aqua-section-muted {
+    width: 100%;
+    padding: 78px 14px;
+  }
+
+  .aqua-principle-grid article {
+    padding: 24px;
+  }
+
+  .aqua-story {
+    padding-top: 78px;
+  }
+
+  .aqua-final-cta {
+    margin-bottom: 78px;
+    padding: 38px 24px;
+  }
+
+  .aqua-final-cta .primary-button {
+    width: 100%;
+  }
+}
+
 @media (max-width: 860px) {
   .site-header {
     grid-template-columns: 1fr auto auto;

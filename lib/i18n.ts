@@ -1,10 +1,11 @@
-import type { Encoding, ScriptLocale } from "./text-tools";
+import type { DetectedTextKind, Encoding, ScriptLocale } from "./text-tools";
 
 export type UiLocale = "zh-Hant" | "en";
 export type TranslationLanguage = "zh-TW" | "zh-CN" | "en";
 
 export type AppCopy = {
   scriptLabels: Record<ScriptLocale, string>;
+  detectedLabels: Record<DetectedTextKind, string>;
   languageLabels: Record<TranslationLanguage, string>;
   encodingLabels: Record<Encoding, string>;
   notices: {
@@ -14,6 +15,7 @@ export type AppCopy = {
     inputRequired: string;
     emptyResponse: string;
     serviceUnavailable: string;
+    autoUnsupported: string;
     conversionFailed: string;
     copied: string;
     clipboardWriteFailed: string;
@@ -50,10 +52,13 @@ export type AppCopy = {
     aria: string;
     tabsAria: string;
     script: string;
+    auto: string;
     encoding: string;
     translate: string;
     unlimited: string;
     sourceText: string;
+    autoDetect: string;
+    autoTarget: string;
     targetText: string;
     plainText: string;
     sourceLanguage: string;
@@ -143,6 +148,13 @@ const ZH_HANT: AppCopy = {
     cn: "簡體中文",
     hk: "繁體中文（香港）",
   },
+  detectedLabels: {
+    simplified: "簡體中文",
+    traditional: "繁體中文",
+    mixed: "混合中文",
+    english: "English",
+    unknown: "無法辨識",
+  },
   languageLabels: {
     "zh-TW": "繁體中文",
     "zh-CN": "簡體中文",
@@ -162,6 +174,7 @@ const ZH_HANT: AppCopy = {
     inputRequired: "請先輸入要處理的文字",
     emptyResponse: "翻譯服務沒有回應，請稍後再試",
     serviceUnavailable: "翻譯服務暫時無法使用",
+    autoUnsupported: "自動模式目前只支援中文或英文，請改用手動模式",
     conversionFailed: "轉換失敗，請再試一次",
     copied: "已複製到剪貼簿",
     clipboardWriteFailed: "無法寫入剪貼簿，請手動選取結果",
@@ -198,10 +211,13 @@ const ZH_HANT: AppCopy = {
     aria: "文字轉換工具",
     tabsAria: "選擇轉換功能",
     script: "簡繁轉換",
+    auto: "自動偵測",
     encoding: "文字編碼",
     translate: "中英翻譯",
     unlimited: "不限次數",
     sourceText: "來源文字",
+    autoDetect: "自動偵測輸入",
+    autoTarget: "自動輸出",
     targetText: "目標文字",
     plainText: "純文字",
     sourceLanguage: "來源語言",
@@ -321,6 +337,13 @@ const EN: AppCopy = {
     cn: "Simplified Chinese",
     hk: "Traditional Chinese (Hong Kong)",
   },
+  detectedLabels: {
+    simplified: "Simplified Chinese",
+    traditional: "Traditional Chinese",
+    mixed: "Mixed Chinese",
+    english: "English",
+    unknown: "Unknown",
+  },
   languageLabels: {
     "zh-TW": "Traditional Chinese",
     "zh-CN": "Simplified Chinese",
@@ -340,6 +363,7 @@ const EN: AppCopy = {
     inputRequired: "Enter text to process first",
     emptyResponse: "The translation service did not respond. Try again later.",
     serviceUnavailable: "The translation service is temporarily unavailable",
+    autoUnsupported: "Auto mode supports Chinese or English text. Use a manual mode instead.",
     conversionFailed: "Conversion failed. Please try again.",
     copied: "Copied to clipboard",
     clipboardWriteFailed: "Unable to write to clipboard. Select the result manually.",
@@ -376,10 +400,13 @@ const EN: AppCopy = {
     aria: "Text conversion tool",
     tabsAria: "Choose a conversion tool",
     script: "Script conversion",
+    auto: "Auto detect",
     encoding: "Text encoding",
     translate: "Chinese-English translation",
     unlimited: "Unlimited",
     sourceText: "Source text",
+    autoDetect: "Auto-detect input",
+    autoTarget: "Auto output",
     targetText: "Target text",
     plainText: "Plain text",
     sourceLanguage: "Source language",

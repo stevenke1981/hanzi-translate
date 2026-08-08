@@ -17,13 +17,13 @@ const context = {
   passThroughOnException() {},
 };
 
-function request(path, init) {
+function request(path, init, host = "example.test") {
   const requestHeaders = new Headers(init?.headers);
-  requestHeaders.set("host", "example.test");
-  requestHeaders.set("x-forwarded-host", "example.test");
+  requestHeaders.set("host", host);
+  requestHeaders.set("x-forwarded-host", host);
   requestHeaders.set("x-forwarded-proto", "https");
   return worker.fetch(
-    new Request(`https://example.test${path}`, {
+    new Request(`https://${host}${path}`, {
       ...init,
       headers: requestHeaders,
     }),
@@ -31,6 +31,28 @@ function request(path, init) {
     context,
   );
 }
+
+test("renders the AquaMoon root landing page on the apex host", async () => {
+  const response = await request("/", { headers: { accept: "text/html" } }, "aquamoon.app");
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(html, /讓好工具，先被理解，再被使用/);
+  assert.match(html, /AquaMoon/);
+  assert.match(html, /translate\.aquamoon\.app/);
+  assert.match(html, /rel="canonical" href="https:\/\/aquamoon\.app\//);
+  assert.match(html, /property="og:url" content="https:\/\/aquamoon\.app\//);
+});
+
+test("keeps the Yijiang translator on the translation subdomain", async () => {
+  const response = await request("/", { headers: { accept: "text/html" } }, "translate.aquamoon.app");
+  const html = await response.text();
+
+  assert.equal(response.status, 200);
+  assert.match(html, /文字，換一種方式抵達/);
+  assert.doesNotMatch(html, /讓好工具，先被理解，再被使用/);
+  assert.match(html, /rel="canonical" href="https:\/\/translate\.aquamoon\.app\//);
+});
 
 test("renders production metadata and core content", async () => {
   const response = await request("/", {
@@ -59,7 +81,7 @@ for (const [path, expected, canonical, ogTitle] of [
   ["/terms", "服務條款", "https://example.test/terms", "服務條款｜譯匠"],
   ["/robots.txt", "User-Agent"],
   ["/sitemap.xml", "<urlset"],
-  ["/ads.txt", "AdSense publisher ID"],
+  ["/ads.txt", "(?:AdSense publisher ID|google\\.com,\\s+pub-)"],
 ]) {
   test(`serves ${path}`, async () => {
     const response = await request(path);
@@ -84,6 +106,30 @@ test("publishes the configured origin in robots and sitemap", async () => {
   assert.match(robots, /Sitemap: https:\/\/example\.test\/sitemap\.xml/);
   assert.match(sitemap, /<loc>https:\/\/example\.test\/<\/loc>/);
   assert.doesNotMatch(sitemap, /chatgpt\.site/);
+});
+
+test("includes the configured AdSense script in the shared head", async () => {
+  if (!process.env.NEXT_PUBLIC_ADSENSE_CLIENT) return;
+
+  const response = await request("/", {
+    headers: { accept: "text/html" },
+  });
+  const html = await response.text();
+
+  assert.match(html, /id="google-adsense-script"/);
+  assert.match(
+    html,
+    /https:\/\/pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js\?client=ca-pub-/,
+  );
+  assert.match(html, /crossorigin="anonymous"/);
+});
+
+test("publishes the AquaMoon origin for apex robots and sitemap", async () => {
+  const robots = await (await request("/robots.txt", undefined, "aquamoon.app")).text();
+  const sitemap = await (await request("/sitemap.xml", undefined, "aquamoon.app")).text();
+
+  assert.match(robots, /Sitemap: https:\/\/aquamoon\.app\/sitemap\.xml/);
+  assert.match(sitemap, /<loc>https:\/\/aquamoon\.app\/<\/loc>/);
 });
 
 test("renders English legal copy when requested", async () => {

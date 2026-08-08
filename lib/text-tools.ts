@@ -1,4 +1,10 @@
 export type ScriptLocale = "tw" | "twp" | "cn" | "hk";
+export type DetectedTextKind =
+  | "simplified"
+  | "traditional"
+  | "mixed"
+  | "english"
+  | "unknown";
 export type Encoding = "base64" | "url" | "html" | "unicode" | "hex";
 
 type OpenCCModule = typeof import("opencc-js");
@@ -20,6 +26,46 @@ export async function convertScript(
   if (from === to) return value;
   const { default: OpenCC } = await loadOpenCC(from, to);
   return OpenCC.Converter({ from, to })(value);
+}
+
+function countDifferences(source: string, converted: string) {
+  const sourceCharacters = Array.from(source);
+  const convertedCharacters = Array.from(converted);
+  const lengthDifference = Math.abs(
+    sourceCharacters.length - convertedCharacters.length,
+  );
+  const sharedLength = Math.min(
+    sourceCharacters.length,
+    convertedCharacters.length,
+  );
+  let differences = lengthDifference;
+  for (let index = 0; index < sharedLength; index += 1) {
+    if (sourceCharacters[index] !== convertedCharacters[index]) {
+      differences += 1;
+    }
+  }
+  return differences;
+}
+
+export async function detectTextKind(value: string): Promise<DetectedTextKind> {
+  const text = value.trim();
+  if (!text) return "unknown";
+
+  if (!/\p{Script=Han}/u.test(text)) {
+    return /[A-Za-z]/.test(text) ? "english" : "unknown";
+  }
+
+  const [simplifiedToTraditional, traditionalToSimplified] = await Promise.all([
+    convertScript(text, "cn", "tw"),
+    convertScript(text, "tw", "cn"),
+  ]);
+  const simplifiedChanges = countDifferences(text, simplifiedToTraditional);
+  const traditionalChanges = countDifferences(text, traditionalToSimplified);
+
+  if (simplifiedChanges > 0 && traditionalChanges === 0) return "simplified";
+  if (traditionalChanges > 0 && simplifiedChanges === 0) return "traditional";
+  if (simplifiedChanges > 0 && traditionalChanges > 0) return "mixed";
+  return "traditional";
 }
 
 function utf8ToBase64(value: string) {

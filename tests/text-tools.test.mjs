@@ -3,7 +3,19 @@ import test from "node:test";
 import {
   convertEncoding,
   convertScript,
+  detectTextKind,
 } from "../lib/text-tools.ts";
+
+test("detects simplified and traditional Chinese scripts", async () => {
+  assert.equal(await detectTextKind("簡體中文轉換測試"), "traditional");
+  assert.equal(await detectTextKind("简体中文转换测试"), "simplified");
+  assert.equal(await detectTextKind("Let words cross languages."), "english");
+});
+
+test("keeps shared Chinese characters usable in automatic mode", async () => {
+  assert.equal(await detectTextKind("你好世界"), "traditional");
+  assert.equal(await detectTextKind("123 !?"), "unknown");
+});
 
 test("converts Taiwan vocabulary back to Simplified Chinese phrases", async () => {
   assert.equal(

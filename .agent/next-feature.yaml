@@ -1,9 +1,9 @@
 next_feature:
-  selected: 清除裝置上的 API 設定
-  evidence: FAQ 要求共用裝置使用後清除 但原介面沒有清除入口
-  autonomy: implement_now
-  scope: 在既有設定對話框加入可驗證的裝置資料清除流程
-  status: accepted
+  selected: AdSense 帳號申請與 Google 審核
+  evidence: CHANGE-011 Worker、aquamoon.app DNS 與全站 AdSense script 均已公開驗證；Google 帳號申請仍需主人登入
+  autonomy: recommend_only
+  scope: 主人手動登入 AdSense，以 aquamoon.app 提交網站、完成身分／付款資料與 Google 審核流程
+  status: pending_confirmation
 next_recommendation:
   selected: 以 D1 持久化免費翻譯額度
   evidence: 目前記憶體 quotaStore 在 Worker 重啟或多執行個體間不保證一致

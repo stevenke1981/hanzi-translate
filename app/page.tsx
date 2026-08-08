@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   convertEncoding,
   convertScript,
+  detectTextKind,
+  type DetectedTextKind,
   type Encoding,
   type ScriptLocale,
 } from "../lib/text-tools";
@@ -15,7 +17,7 @@ import {
   type UiLocale,
 } from "../lib/i18n";
 
-type Mode = "script" | "encoding" | "translate";
+type Mode = "auto" | "script" | "encoding" | "translate";
 type Provider = "builtin" | "openai" | "openrouter" | "gemini" | "xai";
 type Consent = "accepted" | "rejected" | null;
 
@@ -32,8 +34,8 @@ const MODEL_DEFAULTS: Record<Exclude<Provider, "builtin">, string> = {
   xai: "grok-3-mini",
 };
 
-const MODE_ORDER: Mode[] = ["script", "encoding", "translate"];
-const INITIAL_SAMPLE = "軟體讓資訊傳遞更有效率，也讓世界彼此靠近。";
+const MODE_ORDER: Mode[] = ["auto", "script", "encoding", "translate"];
+const INITIAL_SAMPLE = "软件让信息传递更有效率，也让世界彼此靠近。";
 const DEFAULT_API_SETTINGS: ApiSettings = {
   provider: "builtin",
   apiKey: "",
@@ -157,9 +159,12 @@ function AdSlot({
 export default function Home() {
   const [uiLanguage, setUiLanguage] = useState<UiLocale>("zh-Hant");
   const [languageReady, setLanguageReady] = useState(false);
-  const [mode, setMode] = useState<Mode>("script");
+  const [mode, setMode] = useState<Mode>("auto");
   const [input, setInput] = useState(INITIAL_SAMPLE);
   const [output, setOutput] = useState("");
+  const [autoTarget, setAutoTarget] = useState<"zh-TW" | "en">("zh-TW");
+  const [detectedSource, setDetectedSource] =
+    useState<DetectedTextKind | null>(null);
   const [scriptFrom, setScriptFrom] = useState<ScriptLocale>("tw");
   const [scriptTo, setScriptTo] = useState<ScriptLocale>("cn");
   const [encoding, setEncoding] = useState<Encoding>("base64");
@@ -179,20 +184,29 @@ export default function Home() {
   const copy = APP_COPY[uiLanguage];
 
   const sourceLabel = useMemo(() => {
+    if (mode === "auto") {
+      return detectedSource
+        ? copy.detectedLabels[detectedSource]
+        : copy.translator.autoDetect;
+    }
     if (mode === "script") return copy.scriptLabels[scriptFrom];
     if (mode === "encoding") {
       return decode ? copy.encodingLabels[encoding] : copy.translator.plainText;
     }
     return copy.languageLabels[languageFrom];
-  }, [copy, decode, encoding, languageFrom, mode, scriptFrom]);
+  }, [copy, decode, detectedSource, encoding, languageFrom, mode, scriptFrom]);
 
   const targetLabel = useMemo(() => {
+    if (mode === "auto") return copy.languageLabels[autoTarget];
     if (mode === "script") return copy.scriptLabels[scriptTo];
     if (mode === "encoding") {
       return decode ? copy.translator.plainText : copy.encodingLabels[encoding];
     }
     return copy.languageLabels[languageTo];
-  }, [copy, decode, encoding, languageTo, mode, scriptTo]);
+  }, [autoTarget, copy, decode, encoding, languageTo, mode, scriptTo]);
+
+  const usesTranslationQuota =
+    mode === "translate" || (mode === "auto" && autoTarget === "en");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -277,6 +291,7 @@ export default function Home() {
   function chooseMode(nextMode: Mode) {
     setMode(nextMode);
     setOutput("");
+    setDetectedSource(null);
     setNotice(copy.notices.ready);
   }
 
@@ -319,7 +334,9 @@ export default function Home() {
   }
 
   function swap() {
-    if (mode === "script") {
+    if (mode === "auto") {
+      setAutoTarget((current) => (current === "en" ? "zh-TW" : "en"));
+    } else if (mode === "script") {
       setScriptFrom(scriptTo);
       setScriptTo(scriptFrom);
     } else if (mode === "encoding") {
@@ -330,6 +347,39 @@ export default function Home() {
     }
     setInput(output || input);
     setOutput(input);
+    setDetectedSource(null);
+  }
+
+  async function requestTranslation(
+    source: TranslationLanguage,
+    target: TranslationLanguage,
+  ) {
+    const response = await fetch("/api/translate", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        text: input,
+        source,
+        target,
+        provider: apiSettings.provider,
+        apiKey: apiSettings.apiKey,
+        model: apiSettings.model,
+      }),
+    });
+    const responseText = await response.text();
+    if (!responseText) {
+      throw new Error(copy.notices.emptyResponse);
+    }
+    const data = JSON.parse(responseText) as {
+      translation?: string;
+      error?: string;
+      remaining?: number;
+    };
+    if (!response.ok || !data.translation) {
+      throw new Error(data.error || copy.notices.serviceUnavailable);
+    }
+    if (typeof data.remaining === "number") setRemaining(data.remaining);
+    return data.translation;
   }
 
   async function runConversion() {
@@ -343,37 +393,41 @@ export default function Home() {
     setCopied(false);
 
     try {
-      if (mode === "script") {
+      if (mode === "auto") {
+        const detected = await detectTextKind(input);
+        setDetectedSource(detected);
+        if (autoTarget === "zh-TW") {
+          if (detected === "simplified" || detected === "mixed") {
+            setOutput(await convertScript(input, "cn", "tw"));
+          } else if (detected === "traditional") {
+            setOutput(input);
+          } else if (detected === "english") {
+            setOutput(await requestTranslation("en", "zh-TW"));
+          } else {
+            throw new Error(copy.notices.autoUnsupported);
+          }
+        } else if (detected === "english") {
+          setOutput(input);
+        } else if (
+          detected === "simplified" ||
+          detected === "traditional" ||
+          detected === "mixed"
+        ) {
+          setOutput(
+            await requestTranslation(
+              detected === "traditional" ? "zh-TW" : "zh-CN",
+              "en",
+            ),
+          );
+        } else {
+          throw new Error(copy.notices.autoUnsupported);
+        }
+      } else if (mode === "script") {
         setOutput(await convertScript(input, scriptFrom, scriptTo));
       } else if (mode === "encoding") {
         setOutput(convertEncoding(input, encoding, decode));
       } else {
-        const response = await fetch("/api/translate", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            text: input,
-            source: languageFrom,
-            target: languageTo,
-            provider: apiSettings.provider,
-            apiKey: apiSettings.apiKey,
-            model: apiSettings.model,
-          }),
-        });
-        const responseText = await response.text();
-        if (!responseText) {
-          throw new Error(copy.notices.emptyResponse);
-        }
-        const data = JSON.parse(responseText) as {
-          translation?: string;
-          error?: string;
-          remaining?: number;
-        };
-        if (!response.ok || !data.translation) {
-          throw new Error(data.error || copy.notices.serviceUnavailable);
-        }
-        setOutput(data.translation);
-        if (typeof data.remaining === "number") setRemaining(data.remaining);
+        setOutput(await requestTranslation(languageFrom, languageTo));
       }
       setNotice(copy.notices.done);
     } catch (error) {
@@ -402,6 +456,7 @@ export default function Home() {
     try {
       const text = await navigator.clipboard.readText();
       setInput(text);
+      setDetectedSource(null);
       setNotice(copy.notices.pasted);
     } catch {
       setNotice(copy.notices.clipboardReadFailed);
@@ -519,6 +574,7 @@ export default function Home() {
           >
             {(
               [
+                ["auto", copy.translator.auto],
                 ["script", copy.translator.script],
                 ["encoding", copy.translator.encoding],
                 ["translate", copy.translator.translate],
@@ -533,9 +589,9 @@ export default function Home() {
                 onKeyDown={(event) => selectAdjacentMode(event, value)}
               >
                 {label}
-                {value !== "translate" && (
+                {value === "script" || value === "encoding" ? (
                   <small>{copy.translator.unlimited}</small>
-                )}
+                ) : null}
               </button>
             ))}
           </div>
@@ -543,7 +599,9 @@ export default function Home() {
           <div className="workspace">
             <div className="pane">
               <div className="pane-head">
-                {mode === "script" ? (
+                {mode === "auto" ? (
+                  <span className="static-select">{sourceLabel}</span>
+                ) : mode === "script" ? (
                   <select
                     aria-label={copy.translator.sourceText}
                     value={scriptFrom}
@@ -582,14 +640,20 @@ export default function Home() {
                 aria-label={`${sourceLabel} ${copy.translator.sourceText}`}
                 value={input}
                 maxLength={10000}
-                onChange={(event) => setInput(event.target.value)}
+                onChange={(event) => {
+                  setInput(event.target.value);
+                  setDetectedSource(null);
+                }}
                 placeholder={copy.translator.inputPlaceholder}
               />
               <div className="pane-foot">
                 <button
                   type="button"
                   className="text-action"
-                  onClick={() => setInput("")}
+                  onClick={() => {
+                    setInput("");
+                    setDetectedSource(null);
+                  }}
                 >
                   {copy.translator.clear}
                 </button>
@@ -610,7 +674,18 @@ export default function Home() {
 
             <div className="pane result-pane">
               <div className="pane-head">
-                {mode === "script" ? (
+                {mode === "auto" ? (
+                  <select
+                    aria-label={copy.translator.autoTarget}
+                    value={autoTarget}
+                    onChange={(event) =>
+                      setAutoTarget(event.target.value as "zh-TW" | "en")
+                    }
+                  >
+                    <option value="zh-TW">{copy.languageLabels["zh-TW"]}</option>
+                    <option value="en">{copy.languageLabels.en}</option>
+                  </select>
+                ) : mode === "script" ? (
                   <select
                     aria-label={copy.translator.targetText}
                     value={scriptTo}
@@ -707,7 +782,7 @@ export default function Home() {
                 <span />
                 {decode ? copy.translator.decodeMode : copy.translator.encodeMode}
               </label>
-            ) : mode === "translate" ? (
+            ) : usesTranslationQuota ? (
               <div className="quota">
                 <div>
                   <strong>
